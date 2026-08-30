@@ -1,0 +1,6 @@
+@SilverCare.API_HostAddress = http://localhost:5231
+
+GET {{SilverCare.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

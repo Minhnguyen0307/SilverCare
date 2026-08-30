@@ -1,0 +1,297 @@
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Dashboard";
+
+    // Dynamic dates in Vietnamese formatting
+    var now = DateTime.Now;
+    var dayOfWeekVi = now.DayOfWeek switch
+    {
+        DayOfWeek.Sunday => "Chủ Nhật",
+        DayOfWeek.Monday => "Thứ Hai",
+        DayOfWeek.Tuesday => "Thứ Ba",
+        DayOfWeek.Wednesday => "Thứ Tư",
+        DayOfWeek.Thursday => "Thứ Năm",
+        DayOfWeek.Friday => "Thứ Sáu",
+        DayOfWeek.Saturday => "Thứ Bảy",
+        _ => ""
+    };
+    var dateString = $"{dayOfWeekVi}, {now.Day} Tháng {now.Month}, {now.Year}";
+
+    // Capture logged-in user profile name
+    var fullName = TempData["FullName"] as string ?? "Nguyễn Thị Lan";
+    TempData.Keep("FullName");
+}
+
+<div class="welcome-banner">
+    <h1 class="welcome-title">Xin chào, @fullName 👋</h1>
+    <p class="welcome-subtitle">@dateString</p>
+</div>
+
+<!-- KPI Cards -->
+<section class="kpi-grid">
+    <!-- Card 1: Tổng số người cao tuổi -->
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <div class="kpi-icon-wrapper kpi-icon-blue">
+                <!-- Users Icon -->
+                <svg viewBox="0 0 24 24">
+                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+            </div>
+        </div>
+        <div class="kpi-body">
+            <span class="kpi-value">3</span>
+            <span class="kpi-title">Tổng số người cao tuổi</span>
+        </div>
+        <div class="kpi-footer">Số tài khoản trong nguoinha.sql</div>
+    </div>
+
+    <!-- Card 2: Đã hoàn thành hôm nay -->
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <div class="kpi-icon-wrapper kpi-icon-green">
+                <!-- Check Circle Icon -->
+                <svg viewBox="0 0 24 24">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                    <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+            </div>
+        </div>
+        <div class="kpi-body">
+            <span class="kpi-value">0</span>
+            <span class="kpi-title">Đã hoàn thành hôm nay</span>
+        </div>
+        <div class="kpi-footer">0% tỷ lệ hoàn thành</div>
+    </div>
+
+    <!-- Card 3: Cảnh báo sức khỏe -->
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <div class="kpi-icon-wrapper kpi-icon-red">
+                <!-- Alert Triangle Icon -->
+                <svg viewBox="0 0 24 24">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+            </div>
+        </div>
+        <div class="kpi-body">
+            <span class="kpi-value">0</span>
+            <span class="kpi-title">Cảnh báo sức khỏe</span>
+        </div>
+        <div class="kpi-footer">0 mức cao, 0 trung bình</div>
+    </div>
+
+    <!-- Card 4: Lịch chăm sóc hôm nay -->
+    <div class="kpi-card">
+        <div class="kpi-header">
+            <div class="kpi-icon-wrapper kpi-icon-orange">
+                <!-- Calendar Icon -->
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                    <line x1="16" y1="2" x2="16" y2="6" />
+                    <line x1="8" y1="2" x2="8" y2="6" />
+                    <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+            </div>
+        </div>
+        <div class="kpi-body">
+            <span class="kpi-value">0</span>
+            <span class="kpi-title">Lịch chăm sóc hôm nay</span>
+        </div>
+        <div class="kpi-footer">0 chưa thực hiện</div>
+    </div>
+</section>
+
+<!-- Main Grid Section -->
+<div class="dashboard-grid">
+    <!-- Left Column -->
+    <div class="dashboard-col-left">
+        <!-- 1. Theo dõi sức khỏe 7 ngày gần đây -->
+        <div class="dashboard-card">
+            <div class="dashboard-card-header">
+                <h2 class="dashboard-card-title">Theo dõi sức khỏe 7 ngày gần đây</h2>
+                <a href="@Url.Action("Health", "Home")" class="dashboard-card-link">Xem chi tiết &rarr;</a>
+            </div>
+            <div class="chart-container-inner">
+                <!-- Empty Chart coordinate axis -->
+                <svg viewBox="0 0 700 230" class="chart-svg-graphic">
+                    <!-- Grid horizontal lines -->
+                    <line x1="50" y1="30" x2="680" y2="30" class="chart-grid-line" />
+                    <line x1="50" y1="70" x2="680" y2="70" class="chart-grid-line" />
+                    <line x1="50" y1="110" x2="680" y2="110" class="chart-grid-line" />
+                    <line x1="50" y1="150" x2="680" y2="150" class="chart-grid-line" />
+                    
+                    <!-- Y Axis labels -->
+                    <text x="40" y="34" text-anchor="end" class="chart-axis-text">160</text>
+                    <text x="40" y="74" text-anchor="end" class="chart-axis-text">120</text>
+                    <text x="40" y="114" text-anchor="end" class="chart-axis-text">80</text>
+                    <text x="40" y="154" text-anchor="end" class="chart-axis-text">40</text>
+                    <text x="40" y="194" text-anchor="end" class="chart-axis-text">0</text>
+                    
+                    <!-- Y Axis Line -->
+                    <line x1="50" y1="10" x2="50" y2="190" class="chart-axis-line" />
+                    
+                    <!-- X Axis Line -->
+                    <line x1="50" y1="190" x2="680" y2="190" class="chart-axis-line" />
+                    
+                    <!-- X Axis labels -->
+                    <text x="50" y="210" text-anchor="middle" class="chart-axis-text">T2</text>
+                    <text x="155" y="210" text-anchor="middle" class="chart-axis-text">T3</text>
+                    <text x="260" y="210" text-anchor="middle" class="chart-axis-text">T4</text>
+                    <text x="365" y="210" text-anchor="middle" class="chart-axis-text">T5</text>
+                    <text x="470" y="210" text-anchor="middle" class="chart-axis-text">T6</text>
+                    <text x="575" y="210" text-anchor="middle" class="chart-axis-text">T7</text>
+                    <text x="680" y="210" text-anchor="middle" class="chart-axis-text">CN</text>
+                </svg>
+                
+                <div class="chart-legend">
+                    <div class="chart-legend-item">
+                        <span class="chart-legend-color" style="background-color: #0ba5ec;"></span>
+                        <span>Huyết áp tâm thu</span>
+                    </div>
+                    <div class="chart-legend-item">
+                        <span class="chart-legend-color" style="background-color: #12b76a;"></span>
+                        <span>Nhịp tim</span>
+                    </div>
+                    <div class="chart-legend-item">
+                        <span class="chart-legend-color" style="background-color: #f79009;"></span>
+                        <span>Nhiệt độ</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Việc cần làm hôm nay (Empty list) -->
+        <div class="dashboard-card">
+            <div class="dashboard-card-header">
+                <h2 class="dashboard-card-title">Việc cần làm hôm nay</h2>
+                <a href="#" class="dashboard-card-link">Xem tất cả &rarr;</a>
+            </div>
+            <div class="empty-state">
+                <!-- Check Square Outline Icon -->
+                <svg viewBox="0 0 24 24">
+                    <polyline points="9 11 12 14 22 4" />
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+                </svg>
+                <p class="empty-state-text">Không có công việc cần thực hiện hôm nay.</p>
+            </div>
+        </div>
+
+        <!-- 3. Hoạt động gần đây (Empty list) -->
+        <div class="dashboard-card">
+            <div class="dashboard-card-header">
+                <h2 class="dashboard-card-title">Hoạt động gần đây</h2>
+            </div>
+            <div class="empty-state">
+                <!-- Activity Pulse Icon -->
+                <svg viewBox="0 0 24 24">
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                </svg>
+                <p class="empty-state-text">Chưa có hoạt động nào được thực hiện gần đây.</p>
+            </div>
+        </div>
+
+        <!-- 4. Cảnh báo sức khỏe (Empty list) -->
+        <div class="dashboard-card">
+            <div class="dashboard-card-header">
+                <h2 class="dashboard-card-title">Cảnh báo sức khỏe</h2>
+                <a href="#" class="dashboard-card-link">Xem tất cả &rarr;</a>
+            </div>
+            <div class="empty-state">
+                <!-- Warning shield icon -->
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                <p class="empty-state-text">Không có cảnh báo sức khỏe bất thường.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="dashboard-col-right">
+        <!-- AI Assistant Card -->
+        <div class="ai-assistant-card">
+            <div class="ai-header">
+                <div class="ai-header-icon">
+                    <!-- Robot/AI Icon -->
+                    <svg viewBox="0 0 24 24">
+                        <rect x="3" y="11" width="18" height="10" rx="2" />
+                        <circle cx="12" cy="5" r="2" />
+                        <path d="M12 7v4" />
+                        <line x1="8" y1="16" x2="8" y2="16.01" />
+                        <line x1="16" y1="16" x2="16" y2="16.01" />
+                    </svg>
+                </div>
+                <div class="ai-title-wrapper">
+                    <h2 class="ai-title">AI Assistant</h2>
+                    <span class="ai-subtitle">Hỗ trợ phát hiện xu hướng bất thường</span>
+                </div>
+            </div>
+            <div class="ai-actions">
+                <button class="ai-btn">
+                    <span>Phân tích xu hướng sức khỏe</span>
+                    <!-- Right Arrow Icon -->
+                    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
+                </button>
+                <button class="ai-btn">
+                    <span>Gợi ý lịch chăm sóc tối ưu</span>
+                    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
+                </button>
+                <button class="ai-btn">
+                    <span>Tóm tắt báo cáo tuần</span>
+                    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
+                </button>
+                <button class="ai-btn">
+                    <span>Cảnh báo nguy cơ</span>
+                    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Quick Statistics Card (0%) -->
+        <div class="stats-card">
+            <h2 class="stats-title">Thống kê nhanh</h2>
+            <div class="stats-list">
+                <!-- Stat 1: Tỷ lệ hoàn thành -->
+                <div class="stats-item">
+                    <div class="stats-label-wrapper">
+                        <span>Tỷ lệ hoàn thành</span>
+                        <span class="stats-value">0%</span>
+                    </div>
+                    <div class="stats-progress-track">
+                        <div class="stats-progress-bar progress-blue" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- Stat 2: Tuân thủ thuốc -->
+                <div class="stats-item">
+                    <div class="stats-label-wrapper">
+                        <span>Tuân thủ thuốc</span>
+                        <span class="stats-value">0%</span>
+                    </div>
+                    <div class="stats-progress-track">
+                        <div class="stats-progress-bar progress-green" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- Stat 3: Cảnh báo xử lý -->
+                <div class="stats-item">
+                    <div class="stats-label-wrapper">
+                        <span>Cảnh báo xử lý</span>
+                        <span class="stats-value">0%</span>
+                    </div>
+                    <div class="stats-progress-track">
+                        <div class="stats-progress-bar progress-orange" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,689 @@
+@using System.Collections.Generic
+@{
+    Layout = "~/Views/Shared/_DashboardLayout.cshtml";
+    ViewData["Title"] = "Theo dõi sức khỏe";
+
+    // Static Mock Resident health data
+    var residents = new List<ResidentHealth>
+    {
+        new ResidentHealth { Id = "row-1", Initials = "NVA", Name = "Nguyễn Văn An", Room = "101", Systolic = 148, Diastolic = 96, HeartRate = 79, Temperature = 37.0, LastUpdated = "08:30 hôm nay" },
+        new ResidentHealth { Id = "row-2", Initials = "TTB", Name = "Trần Thị Bảy", Room = "102", Systolic = 118, Diastolic = 75, HeartRate = 58, Temperature = 36.5, LastUpdated = "07:15 hôm nay" },
+        new ResidentHealth { Id = "row-3", Initials = "LVC", Name = "Lê Văn Cường", Room = "103", Systolic = 125, Diastolic = 80, HeartRate = 70, Temperature = 37.2, LastUpdated = "06:45 hôm nay" },
+        new ResidentHealth { Id = "row-4", Initials = "PHD", Name = "Phạm Hồng Dương", Room = "105", Systolic = 120, Diastolic = 78, HeartRate = 68, Temperature = 36.6, LastUpdated = "08:00 hôm nay" }
+    };
+}
+
+@functions {
+    public class ResidentHealth
+    {
+        public string Id { get; set; }
+        public string Initials { get; set; }
+        public string Name { get; set; }
+        public string Room { get; set; }
+        public int Systolic { get; set; }
+        public int Diastolic { get; set; }
+        public int HeartRate { get; set; }
+        public double Temperature { get; set; }
+        public string LastUpdated { get; set; }
+    }
+
+    public static (string Text, string Class) GetSeverity(int sys, int dia, int hr, double temp)
+    {
+        // 1. HIGH (Cao) Severity: one or more of these met
+        if (sys >= 140 || 
+            dia >= 90 || 
+            (sys - dia) <= 20 || 
+            hr > 100 || 
+            hr < 50 || 
+            temp >= 38.5 || 
+            temp < 35.0)
+        {
+            return ("Cao", "severity-high");
+        }
+
+        // 2. MEDIUM (Trung bình) Severity: borderline readings
+        if ((sys >= 120 && sys <= 139) || 
+            (dia >= 80 && dia <= 89) || 
+            (hr >= 91 && hr <= 100) || 
+            (hr >= 50 && hr <= 59) || 
+            (temp >= 37.5 && temp <= 38.4))
+        {
+            return ("Trung bình", "severity-medium");
+        }
+
+        // 3. NORMAL (Bình thường) Severity
+        return ("Bình thường", "severity-normal");
+    }
+}
+
+<div class="health-header">
+    <h1 class="health-title">Theo dõi sức khỏe</h1>
+    <p class="health-subtitle">Chỉ số sức khỏe hôm nay &middot; Cập nhật lần cuối: 09:15</p>
+</div>
+
+<!-- Filters Panel -->
+<div class="health-filters-panel">
+    <!-- Search -->
+    <div class="health-search-wrapper">
+        <svg viewBox="0 0 24 24" class="search-icon">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input type="text" class="health-search-input" placeholder="Tìm theo tên, phòng..." />
+    </div>
+
+    <!-- Filter Pills -->
+    <div class="health-pills-wrapper">
+        <button class="health-pill active">Tất cả</button>
+        <button class="health-pill">Cao</button>
+        <button class="health-pill">Trung bình</button>
+        <button class="health-pill">Bình thường</button>
+    </div>
+</div>
+
+<!-- Table Card -->
+<div class="health-table-card">
+    <div class="health-table-responsive">
+        <table class="health-table">
+            <thead>
+                <tr>
+                    <th>HỌ TÊN</th>
+                    <th>PHÒNG</th>
+                    <th>HUYẾT ÁP</th>
+                    <th>NHỊP TIM</th>
+                    <th>NHIỆT ĐỘ</th>
+                    <th>CẬP NHẬT</th>
+                    <th>MỨC ĐỘ</th>
+                    <th style="width: 120px;"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var res in residents)
+                {
+                    var severity = GetSeverity(res.Systolic, res.Diastolic, res.HeartRate, res.Temperature);
+                    <tr id="@res.Id" data-severity="@severity.Text" class="@(res.Id == "row-1" ? "selected-row" : "")">
+                        <td>
+                            <div class="table-profile-cell">
+                                <div class="table-avatar text-blue">@res.Initials</div>
+                                <span class="table-name">@res.Name</span>
+                            </div>
+                        </td>
+                        <td>@res.Room</td>
+                        <td class="cell-bp"><span class="bp-val">@res.Systolic/@res.Diastolic</span> mmHg</td>
+                        <td class="cell-hr"><span class="hr-val">@res.HeartRate</span> lần/phút</td>
+                        <td class="cell-temp"><span class="temp-val">@res.Temperature</span>&deg;C</td>
+                        <td class="cell-time">@res.LastUpdated</td>
+                        <td class="cell-severity">
+                            <span class="severity-badge @severity.Class">@severity.Text</span>
+                        </td>
+                        <td>
+                            <a href="#" class="table-action-link btn-update-trigger"
+                               data-row-id="@res.Id"
+                               data-name="@res.Name"
+                               data-sys="@res.Systolic"
+                               data-dia="@res.Diastolic"
+                               data-hr="@res.HeartRate"
+                               data-temp="@res.Temperature">
+                                <!-- Pulse line SVG -->
+                                <svg viewBox="0 0 24 24" class="pulse-icon">
+                                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                                </svg>
+                                <span>Cập nhật</span>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ==========================================================================
+   INTERACTIVE PATIENT CHART CARD
+   ========================================================================== -->
+<div class="interactive-chart-card">
+    <div class="dashboard-card-header">
+        <h2 class="dashboard-card-title" id="interactive-chart-title">Biểu đồ sức khỏe 7 ngày &mdash; Nguyễn Văn An</h2>
+    </div>
+    
+    <div class="chart-container-inner" style="position: relative;">
+        <!-- SVG Canvas -->
+        <svg viewBox="0 0 700 230" class="chart-svg-interactive" id="chart-svg-canvas" preserveAspectRatio="none">
+            <!-- Grid horizontal lines -->
+            <line x1="50" y1="30" x2="680" y2="30" class="chart-grid-line" />
+            <line x1="50" y1="70" x2="680" y2="70" class="chart-grid-line" />
+            <line x1="50" y1="110" x2="680" y2="110" class="chart-grid-line" />
+            <line x1="50" y1="150" x2="680" y2="150" class="chart-grid-line" />
+            
+            <!-- Y Axis labels -->
+            <text x="40" y="34" text-anchor="end" class="chart-axis-text">160</text>
+            <text x="40" y="74" text-anchor="end" class="chart-axis-text">120</text>
+            <text x="40" y="114" text-anchor="end" class="chart-axis-text">80</text>
+            <text x="40" y="154" text-anchor="end" class="chart-axis-text">40</text>
+            <text x="40" y="194" text-anchor="end" class="chart-axis-text">0</text>
+            
+            <!-- Y Axis Line -->
+            <line x1="50" y1="10" x2="50" y2="190" class="chart-axis-line" />
+            
+            <!-- X Axis Line -->
+            <line x1="50" y1="190" x2="680" y2="190" class="chart-axis-line" />
+            
+            <!-- X Axis labels -->
+            <text x="50" y="210" text-anchor="middle" class="chart-axis-text">T2</text>
+            <text x="155" y="210" text-anchor="middle" class="chart-axis-text">T3</text>
+            <text x="260" y="210" text-anchor="middle" class="chart-axis-text">T4</text>
+            <text x="365" y="210" text-anchor="middle" class="chart-axis-text">T5</text>
+            <text x="470" y="210" text-anchor="middle" class="chart-axis-text">T6</text>
+            <text x="575" y="210" text-anchor="middle" class="chart-axis-text">T7</text>
+            <text x="680" y="210" text-anchor="middle" class="chart-axis-text">CN</text>
+
+            <!-- Guide dashed line (vertical tracker) -->
+            <line x1="0" y1="10" x2="0" y2="190" class="chart-hover-guideline" id="hover-guideline" />
+
+            <!-- Dynamic Paths -->
+            <path id="trend-path-sys" class="chart-line-sys" d="" />
+            <path id="trend-path-dia" class="chart-line-dia" d="" />
+            <path id="trend-path-hr" class="chart-line-hr" d="" />
+
+            <!-- Dynamic Tracker dots -->
+            <circle id="tracker-dot-sys" class="chart-tracker-dot sys" />
+            <circle id="tracker-dot-dia" class="chart-tracker-dot dia" />
+            <circle id="tracker-dot-hr" class="chart-tracker-dot hr" />
+        </svg>
+
+        <!-- Dynamic Tooltip -->
+        <div class="chart-tooltip" id="chart-hover-tooltip">
+            <h3 class="chart-tooltip-header" id="tooltip-day-header">T4</h3>
+            <div class="chart-tooltip-row">
+                <span class="chart-tooltip-label">Huyết áp tâm thu:</span>
+                <span class="chart-tooltip-value chart-tooltip-val-sys" id="tooltip-val-sys">135</span>
+            </div>
+            <div class="chart-tooltip-row">
+                <span class="chart-tooltip-label">Huyết áp tâm trương:</span>
+                <span class="chart-tooltip-value chart-tooltip-val-dia" id="tooltip-val-dia">88</span>
+            </div>
+            <div class="chart-tooltip-row">
+                <span class="chart-tooltip-label">Nhịp tim:</span>
+                <span class="chart-tooltip-value chart-tooltip-val-hr" id="tooltip-val-hr">73</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Legend -->
+    <div class="chart-interactive-legend">
+        <div class="chart-interactive-legend-item">
+            <span class="chart-interactive-legend-icon">
+                <svg viewBox="0 0 24 24">
+                    <line x1="2" y1="12" x2="22" y2="12" stroke="#f04438" stroke-width="3" />
+                    <circle cx="12" cy="12" r="5" fill="#ffffff" stroke="#f04438" stroke-width="3" />
+                </svg>
+            </span>
+            <span>Huyết áp tâm thu</span>
+        </div>
+        <div class="chart-interactive-legend-item">
+            <span class="chart-interactive-legend-icon">
+                <svg viewBox="0 0 24 24">
+                    <line x1="2" y1="12" x2="22" y2="12" stroke="#f79009" stroke-width="3" />
+                    <circle cx="12" cy="12" r="5" fill="#ffffff" stroke="#f79009" stroke-width="3" />
+                </svg>
+            </span>
+            <span>Huyết áp tâm trương</span>
+        </div>
+        <div class="chart-interactive-legend-item">
+            <span class="chart-interactive-legend-icon">
+                <svg viewBox="0 0 24 24">
+                    <line x1="2" y1="12" x2="22" y2="12" stroke="#12b76a" stroke-width="3" />
+                    <circle cx="12" cy="12" r="5" fill="#ffffff" stroke="#12b76a" stroke-width="3" />
+                </svg>
+            </span>
+            <span>Nhịp tim</span>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================================================
+   UPDATE HEALTH METRICS MODAL DIALOG
+   ========================================================================== -->
+<div class="modal-overlay" id="update-modal-overlay">
+    <div class="modal-container">
+        <!-- Header -->
+        <div class="modal-header">
+            <h2 class="modal-title" id="modal-title-text">Cập nhật chỉ số - Nguyễn Văn An</h2>
+            <button class="modal-close-btn" id="btn-modal-close" title="Đóng">
+                <!-- Close cross SVG -->
+                <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" fill="none">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+            <!-- Blood Pressure row -->
+            <div class="modal-form-row">
+                <div class="modal-form-group">
+                    <label class="modal-label" for="input-sys">Huyết áp tâm thu</label>
+                    <input type="number" class="modal-input" id="input-sys" placeholder="120" required />
+                </div>
+                <div class="modal-form-group">
+                    <label class="modal-label" for="input-dia">Huyết áp tâm trương</label>
+                    <input type="number" class="modal-input" id="input-dia" placeholder="80" required />
+                </div>
+            </div>
+
+            <!-- Heart rate group -->
+            <div class="modal-form-group">
+                <label class="modal-label" for="input-hr">Nhịp tim (lần/phút)</label>
+                <input type="number" class="modal-input" id="input-hr" placeholder="75" required />
+            </div>
+
+            <!-- Temperature group -->
+            <div class="modal-form-group">
+                <label class="modal-label" for="input-temp">Nhiệt độ (&deg;C)</label>
+                <input type="number" step="0.1" class="modal-input" id="input-temp" placeholder="36.5" required />
+            </div>
+
+            <!-- Note group -->
+            <div class="modal-form-group">
+                <label class="modal-label" for="input-note">Ghi chú</label>
+                <textarea class="modal-textarea" id="input-note" placeholder="Nhập ghi chú sức khỏe..."></textarea>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+            <button class="modal-footer-btn modal-btn-cancel" id="btn-modal-cancel">Hủy</button>
+            <button class="modal-footer-btn modal-btn-save" id="btn-modal-save">Lưu cập nhật</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const modalOverlay = document.getElementById("update-modal-overlay");
+            const modalTitle = document.getElementById("modal-title-text");
+            const btnClose = document.getElementById("btn-modal-close");
+            const btnCancel = document.getElementById("btn-modal-cancel");
+            const btnSave = document.getElementById("btn-modal-save");
+
+            const inputSys = document.getElementById("input-sys");
+            const inputDia = document.getElementById("input-dia");
+            const inputHr = document.getElementById("input-hr");
+            const inputTemp = document.getElementById("input-temp");
+            const inputNote = document.getElementById("input-note");
+            
+            const searchInput = document.querySelector(".health-search-input");
+
+            let currentEditingRowId = "";
+            let selectedPatientId = "row-1"; // Nguyễn Văn An selected by default
+
+            // ==========================================================================
+            // MOCK PATIENT HISTORY DATA (Day 1 to 6)
+            // ==========================================================================
+            const baseHistory = {
+                "row-1": {
+                    sys: [138, 140, 142, 145, 142, 146],
+                    dia: [88, 90, 92, 94, 92, 95],
+                    hr: [75, 78, 80, 82, 80, 81]
+                },
+                "row-2": {
+                    sys: [115, 116, 118, 120, 119, 117],
+                    dia: [70, 72, 74, 76, 75, 73],
+                    hr: [62, 60, 58, 59, 61, 57]
+                },
+                "row-3": {
+                    sys: [120, 122, 124, 128, 126, 124],
+                    dia: [78, 79, 80, 82, 81, 79],
+                    hr: [68, 70, 72, 71, 69, 68]
+                },
+                "row-4": {
+                    sys: [118, 119, 120, 122, 121, 119],
+                    dia: [76, 77, 78, 79, 78, 76],
+                    hr: [65, 66, 68, 70, 69, 67]
+                }
+            };
+
+            // Bind triggers for opening the modal
+            document.querySelectorAll(".btn-update-trigger").forEach(function (trigger) {
+                trigger.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    e.stopPropagation(); // Avoid selecting row on action link click!
+
+                    // Read attributes
+                    currentEditingRowId = this.getAttribute("data-row-id");
+                    const name = this.getAttribute("data-name");
+                    const sys = this.getAttribute("data-sys");
+                    const dia = this.getAttribute("data-dia");
+                    const hr = this.getAttribute("data-hr");
+                    const temp = this.getAttribute("data-temp");
+
+                    // Populate fields
+                    modalTitle.innerText = `Cập nhật chỉ số - ${name}`;
+                    inputSys.value = sys;
+                    inputDia.value = dia;
+                    inputHr.value = hr;
+                    inputTemp.value = temp;
+                    inputNote.value = ""; // Reset note
+
+                    // Show modal
+                    modalOverlay.classList.add("active");
+                });
+            });
+
+            // Close actions
+            function closeModal() {
+                modalOverlay.classList.remove("active");
+            }
+
+            btnClose.addEventListener("click", closeModal);
+            btnCancel.addEventListener("click", closeModal);
+
+            // Close on overlay click
+            modalOverlay.addEventListener("click", function (e) {
+                if (e.target === modalOverlay) {
+                    closeModal();
+                }
+            });
+
+            // Save Action
+            btnSave.addEventListener("click", function () {
+                const sys = parseInt(inputSys.value);
+                const dia = parseInt(inputDia.value);
+                const hr = parseInt(inputHr.value);
+                const temp = parseFloat(inputTemp.value);
+
+                if (isNaN(sys) || isNaN(dia) || isNaN(hr) || isNaN(temp)) {
+                    alert("Vui lòng nhập đầy đủ các chỉ số hợp lệ!");
+                    return;
+                }
+
+                // Update Row in Table
+                const row = document.getElementById(currentEditingRowId);
+                if (row) {
+                    // 1. Update BP
+                    row.querySelector(".cell-bp").innerHTML = `<span class="bp-val">${sys}/${dia}</span> mmHg`;
+                    
+                    // 2. Update Heart Rate
+                    row.querySelector(".cell-hr").innerHTML = `<span class="hr-val">${hr}</span> lần/phút`;
+                    
+                    // 3. Update Temp
+                    row.querySelector(".cell-temp").innerHTML = `<span class="temp-val">${temp}</span>&deg;C`;
+
+                    // 4. Update Time to Real Time format (HH:mm hôm nay)
+                    const now = new Date();
+                    const hh = String(now.getHours()).padStart(2, '0');
+                    const mm = String(now.getMinutes()).padStart(2, '0');
+                    row.querySelector(".cell-time").innerText = `${hh}:${mm} hôm nay`;
+
+                    // 5. Calculate Severity level based on user rules
+                    let severityText = "Bình thường";
+                    let severityClass = "severity-normal";
+
+                    const bpDiff = sys - dia;
+
+                    // Check HIGH (Cao)
+                    if (sys >= 140 || 
+                        dia >= 90 || 
+                        bpDiff <= 20 || 
+                        hr > 100 || 
+                        hr < 50 || 
+                        temp >= 38.5 || 
+                        temp < 35.0) 
+                    {
+                        severityText = "Cao";
+                        severityClass = "severity-high";
+                    }
+                    // Check MEDIUM (Trung bình)
+                    else if ((sys >= 120 && sys <= 139) || 
+                             (dia >= 80 && dia <= 89) || 
+                             (hr >= 91 && hr <= 100) || 
+                             (hr >= 50 && hr <= 59) || 
+                             (temp >= 37.5 && temp <= 38.4)) 
+                    {
+                        severityText = "Trung bình";
+                        severityClass = "severity-medium";
+                    }
+
+                    row.querySelector(".cell-severity").innerHTML = `<span class="severity-badge ${severityClass}">${severityText}</span>`;
+                    
+                    // Update the row's data attribute
+                    row.setAttribute("data-severity", severityText);
+
+                    // 6. Update data attributes on trigger button so next click pulls updated data
+                    const triggerBtn = row.querySelector(".btn-update-trigger");
+                    triggerBtn.setAttribute("data-sys", sys);
+                    triggerBtn.setAttribute("data-dia", dia);
+                    triggerBtn.setAttribute("data-hr", hr);
+                    triggerBtn.setAttribute("data-temp", temp);
+                    
+                    // Redraw chart immediately if this row is currently selected
+                    if (currentEditingRowId === selectedPatientId) {
+                        drawChart();
+                    }
+                }
+
+                closeModal();
+                applyFilters(); // Re-apply filter in case the severity level changed
+            });
+
+            // ==========================================================================
+            // FILTER & SEARCH LOGIC
+            // ==========================================================================
+            function applyFilters() {
+                const activePill = document.querySelector(".health-pill.active");
+                const selectedSeverity = activePill ? activePill.innerText.trim() : "Tất cả";
+                const query = searchInput ? searchInput.value.toLowerCase().trim() : "";
+
+                document.querySelectorAll(".health-table tbody tr").forEach(function (row) {
+                    const rowSeverity = row.getAttribute("data-severity");
+                    const name = row.querySelector(".table-name").innerText.toLowerCase();
+                    const room = row.cells[1].innerText.toLowerCase();
+
+                    const matchesSeverity = (selectedSeverity === "Tất cả" || rowSeverity === selectedSeverity);
+                    const matchesQuery = (name.includes(query) || room.includes(query));
+
+                    if (matchesSeverity && matchesQuery) {
+                        row.style.display = ""; // Show
+                    } else {
+                        row.style.display = "none"; // Hide
+                    }
+                });
+            }
+
+            // Click listener for filter pills
+            document.querySelectorAll(".health-pill").forEach(function (pill) {
+                pill.addEventListener("click", function () {
+                    document.querySelectorAll(".health-pill").forEach(p => p.classList.remove("active"));
+                    this.classList.add("active");
+                    applyFilters();
+                });
+            });
+
+            // Input listener for search
+            if (searchInput) {
+                searchInput.addEventListener("input", applyFilters);
+            }
+
+            // ==========================================================================
+            // ROW SELECTION LOGIC
+            // ==========================================================================
+            document.querySelectorAll(".health-table tbody tr").forEach(function (row) {
+                row.addEventListener("click", function (e) {
+                    // Ignore clicks on action columns
+                    if (e.target.closest("td").cellIndex === 7) return;
+
+                    document.querySelectorAll(".health-table tbody tr").forEach(r => r.classList.remove("selected-row"));
+                    this.classList.add("selected-row");
+
+                    selectedPatientId = this.id;
+                    drawChart();
+                });
+            });
+
+            // ==========================================================================
+            // DYNAMIC CHART RENDERING LOGIC (ACCURATE SVG MATH)
+            // ==========================================================================
+            const svgCanvas = document.getElementById("chart-svg-canvas");
+            const chartTitle = document.getElementById("interactive-chart-title");
+            
+            const pathSys = document.getElementById("trend-path-sys");
+            const pathDia = document.getElementById("trend-path-dia");
+            const pathHr = document.getElementById("trend-path-hr");
+
+            // Mapping ticks
+            const xCoords = [50, 155, 260, 365, 470, 575, 680];
+            const dayNames = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+
+            // Math scaling helpers:
+            // Max Y unit is 160 (maps to y=30 pixels) -> Let's map Y range 0-160 to SVG range 190-30 px
+            // Scaling height = 160px.
+            // Formula: y = 190 - (value * (160 / 160)) = 190 - value (1 to 1 mapping with 30px top padding)
+            // Wait! In previous scaling: 190 - (val * 1.125). Let's see:
+            // If val=160: 190 - 160 = 30 (Top line). If val=0: 190 - 0 = 190 (Bottom axis).
+            // This is perfect! The scaling factor is exactly 1.0.
+            // Value 160 -> y = 30
+            // Value 120 -> y = 70
+            // Value 80 -> y = 110
+            // Value 40 -> y = 150
+            // Value 0 -> y = 190
+            // This fits the grid lines EXACTLY: y=30, y=70, y=110, y=150, y=190!
+            // Let's use this exact 1:1 mapping: Y = 190 - value. It is pixel-perfect and accurate!
+            function getSvgY(val) {
+                return 190 - val;
+            }
+
+            function drawChart() {
+                const selectedRow = document.getElementById(selectedPatientId);
+                if (!selectedRow) return;
+
+                const patientName = selectedRow.querySelector(".table-name").innerText;
+                chartTitle.innerHTML = `Biểu đồ sức khỏe 7 ngày &mdash; ${patientName}`;
+
+                // Extract current values from the trigger button data attributes
+                const triggerBtn = selectedRow.querySelector(".btn-update-trigger");
+                const currentSys = parseInt(triggerBtn.getAttribute("data-sys"));
+                const currentDia = parseInt(triggerBtn.getAttribute("data-dia"));
+                const currentHr = parseInt(triggerBtn.getAttribute("data-hr"));
+
+                // Build history array: 6 base values + 1 active current value
+                const sysTrend = [...baseHistory[selectedPatientId].sys, currentSys];
+                const diaTrend = [...baseHistory[selectedPatientId].dia, currentDia];
+                const hrTrend = [...baseHistory[selectedPatientId].hr, currentHr];
+
+                // Build SVG path commands
+                let dSys = `M ${xCoords[0]} ${getSvgY(sysTrend[0])}`;
+                let dDia = `M ${xCoords[0]} ${getSvgY(diaTrend[0])}`;
+                let dHr = `M ${xCoords[0]} ${getSvgY(hrTrend[0])}`;
+
+                for (let i = 1; i < 7; i++) {
+                    dSys += ` L ${xCoords[i]} ${getSvgY(sysTrend[i])}`;
+                    dDia += ` L ${xCoords[i]} ${getSvgY(diaTrend[i])}`;
+                    dHr += ` L ${xCoords[i]} ${getSvgY(hrTrend[i])}`;
+                }
+
+                // Set paths
+                pathSys.setAttribute("d", dSys);
+                pathDia.setAttribute("d", dDia);
+                pathHr.setAttribute("d", dHr);
+
+                // Store trends for mouse hover reference
+                svgCanvas.setAttribute("data-sys-trend", JSON.stringify(sysTrend));
+                svgCanvas.setAttribute("data-dia-trend", JSON.stringify(diaTrend));
+                svgCanvas.setAttribute("data-hr-trend", JSON.stringify(hrTrend));
+            }
+
+            // Initialize chart
+            drawChart();
+
+            // ==========================================================================
+            // HOVER & TOOLTIP LOGIC
+            // ==========================================================================
+            const hoverGuideline = document.getElementById("hover-guideline");
+            const trackerDotSys = document.getElementById("tracker-dot-sys");
+            const trackerDotDia = document.getElementById("tracker-dot-dia");
+            const trackerDotHr = document.getElementById("tracker-dot-hr");
+
+            const tooltip = document.getElementById("chart-hover-tooltip");
+            const tooltipDayHeader = document.getElementById("tooltip-day-header");
+            const tooltipSysVal = document.getElementById("tooltip-val-sys");
+            const tooltipDiaVal = document.getElementById("tooltip-val-dia");
+            const tooltipHrVal = document.getElementById("tooltip-val-hr");
+
+            svgCanvas.addEventListener("mousemove", function (e) {
+                // Get mouse X position relative to the SVG canvas element
+                const rect = svgCanvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                
+                // SVG coordinates are viewBox scaled (0 to 700 width)
+                const svgScaleFactor = 700 / rect.width;
+                const canvasX = mouseX * svgScaleFactor;
+
+                // Find closest day index (0 to 6)
+                let closestDayIndex = 0;
+                let minDiff = Infinity;
+                for (let i = 0; i < xCoords.length; i++) {
+                    const diff = Math.abs(canvasX - xCoords[i]);
+                    if (diff < minDiff) {
+                        minDiff = diff;
+                        closestDayIndex = i;
+                    }
+                }
+
+                // Retrieve trends
+                const sysTrend = JSON.parse(svgCanvas.getAttribute("data-sys-trend"));
+                const diaTrend = JSON.parse(svgCanvas.getAttribute("data-dia-trend"));
+                const hrTrend = JSON.parse(svgCanvas.getAttribute("data-hr-trend"));
+
+                if (!sysTrend || !diaTrend || !hrTrend) return;
+
+                const cx = xCoords[closestDayIndex];
+                const cySys = getSvgY(sysTrend[closestDayIndex]);
+                const cyDia = getSvgY(diaTrend[closestDayIndex]);
+                const cyHr = getSvgY(hrTrend[closestDayIndex]);
+
+                // Update guideline vertical positioning
+                hoverGuideline.setAttribute("x1", cx);
+                hoverGuideline.setAttribute("x2", cx);
+                hoverGuideline.style.display = "block";
+
+                // Update Highlight tracker dots
+                trackerDotSys.setAttribute("cx", cx);
+                trackerDotSys.setAttribute("cy", cySys);
+                trackerDotSys.style.display = "block";
+
+                trackerDotDia.setAttribute("cx", cx);
+                trackerDotDia.setAttribute("cy", cyDia);
+                trackerDotDia.style.display = "block";
+
+                trackerDotHr.setAttribute("cx", cx);
+                trackerDotHr.setAttribute("cy", cyHr);
+                trackerDotHr.style.display = "block";
+
+                // Update Tooltip values
+                tooltipDayHeader.innerText = dayNames[closestDayIndex];
+                tooltipSysVal.innerText = sysTrend[closestDayIndex];
+                tooltipDiaVal.innerText = diaTrend[closestDayIndex];
+                tooltipHrVal.innerText = hrTrend[closestDayIndex];
+
+                // Calculate tooltip absolute positions inside the card relative wrapper
+                const tooltipX = cx / svgScaleFactor;
+                const tooltipY = Math.min(cySys, cyDia, cyHr) / svgScaleFactor;
+
+                tooltip.style.left = `${tooltipX}px`;
+                tooltip.style.top = `${tooltipY}px`;
+                tooltip.classList.add("active");
+            });
+
+            svgCanvas.addEventListener("mouseleave", function () {
+                // Hide guideline, tracker dots, and tooltip
+                hoverGuideline.style.display = "none";
+                trackerDotSys.style.display = "none";
+                trackerDotDia.style.display = "none";
+                trackerDotHr.style.display = "none";
+                tooltip.classList.remove("active");
+            });
+        });
+    </script>
+}
