@@ -169,13 +169,13 @@
             <line x1="50" y1="190" x2="680" y2="190" class="chart-axis-line" />
             
             <!-- X Axis labels -->
-            <text x="50" y="210" text-anchor="middle" class="chart-axis-text">T2</text>
-            <text x="155" y="210" text-anchor="middle" class="chart-axis-text">T3</text>
-            <text x="260" y="210" text-anchor="middle" class="chart-axis-text">T4</text>
-            <text x="365" y="210" text-anchor="middle" class="chart-axis-text">T5</text>
-            <text x="470" y="210" text-anchor="middle" class="chart-axis-text">T6</text>
-            <text x="575" y="210" text-anchor="middle" class="chart-axis-text">T7</text>
-            <text x="680" y="210" text-anchor="middle" class="chart-axis-text">CN</text>
+            <text x="50" y="210" text-anchor="middle" class="chart-axis-text">25/08</text>
+            <text x="155" y="210" text-anchor="middle" class="chart-axis-text">26/08</text>
+            <text x="260" y="210" text-anchor="middle" class="chart-axis-text">27/08</text>
+            <text x="365" y="210" text-anchor="middle" class="chart-axis-text">28/08</text>
+            <text x="470" y="210" text-anchor="middle" class="chart-axis-text">29/08</text>
+            <text x="575" y="210" text-anchor="middle" class="chart-axis-text">30/08</text>
+            <text x="680" y="210" text-anchor="middle" class="chart-axis-text">31/08</text>
 
             <!-- Guide dashed line (vertical tracker) -->
             <line x1="0" y1="10" x2="0" y2="190" class="chart-hover-guideline" id="hover-guideline" />
@@ -193,7 +193,7 @@
 
         <!-- Dynamic Tooltip -->
         <div class="chart-tooltip" id="chart-hover-tooltip">
-            <h3 class="chart-tooltip-header" id="tooltip-day-header">T4</h3>
+            <h3 class="chart-tooltip-header" id="tooltip-day-header">28/08</h3>
             <div class="chart-tooltip-row">
                 <span class="chart-tooltip-label">Huyết áp tâm thu:</span>
                 <span class="chart-tooltip-value chart-tooltip-val-sys" id="tooltip-val-sys">135</span>
@@ -534,7 +534,7 @@
 
             // Mapping ticks
             const xCoords = [50, 155, 260, 365, 470, 575, 680];
-            const dayNames = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+            const dayNames = ["25/08", "26/08", "27/08", "28/08", "29/08", "30/08", "31/08"];
 
             // Math scaling helpers:
             // Max Y unit is 160 (maps to y=30 pixels) -> Let's map Y range 0-160 to SVG range 190-30 px
