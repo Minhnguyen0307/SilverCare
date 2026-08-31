@@ -106,6 +106,12 @@ namespace SilverCare.Controllers
             return View();
         }
 
+        [HttpGet]
+        public IActionResult Schedule()
+        {
+            return View();
+        }
+
         public IActionResult LoginSuccess(string role)
         {
             ViewBag.Role = role;
