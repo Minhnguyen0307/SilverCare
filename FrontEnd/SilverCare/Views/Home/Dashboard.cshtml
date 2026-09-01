@@ -22,6 +22,132 @@
     TempData.Keep("FullName");
 }
 
+<style>
+    /* Dashboard Todo Items */
+    .dash-todo-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .dash-todo-item {
+        display: grid;
+        grid-template-columns: 65px 1fr auto;
+        align-items: center;
+        padding: 16px 0;
+        border-bottom: 1px solid #f2f4f7;
+        transition: background-color 0.15s ease;
+    }
+
+    .dash-todo-item:last-child {
+        border-bottom: none;
+    }
+
+    .dash-todo-time {
+        font-size: 14px;
+        font-weight: 600;
+        color: #475467;
+    }
+
+    .dash-todo-info {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .dash-todo-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #101828;
+    }
+
+    .dash-todo-meta {
+        font-size: 13px;
+        color: #667085;
+    }
+
+    .dash-todo-badge {
+        font-size: 12px;
+        padding: 6px 14px;
+        border-radius: 12px;
+        white-space: nowrap;
+    }
+
+    .badge-dash-todo {
+        background-color: #f2f4f7;
+        color: #475467;
+        font-weight: 500;
+    }
+
+    .badge-dash-pending {
+        background-color: #fef0c7;
+        color: #b54708;
+        font-weight: 600;
+    }
+
+    /* Dashboard Activities List */
+    .dash-activity-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .dash-activity-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .dash-activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .dash-activity-icon.icon-blue {
+        background-color: #e0f2fe;
+        color: #0ba5ec;
+    }
+
+    .dash-activity-icon.icon-green {
+        background-color: #ecfdf3;
+        color: #12b76a;
+    }
+
+    .dash-activity-icon.icon-orange {
+        background-color: #fffaeb;
+        color: #f79009;
+    }
+
+    .dash-activity-icon svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        stroke-width: 2;
+        fill: none;
+    }
+
+    .dash-activity-content {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .dash-activity-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: #101828;
+    }
+
+    .dash-activity-meta {
+        font-size: 12px;
+        color: #667085;
+    }
+</style>
+
 <div class="welcome-banner">
     <h1 class="welcome-title">Xin chào, @fullName 👋</h1>
     <p class="welcome-subtitle">@dateString</p>
@@ -43,10 +169,10 @@
             </div>
         </div>
         <div class="kpi-body">
-            <span class="kpi-value">3</span>
+            <span class="kpi-value" id="kpi-elderly-count">3</span>
             <span class="kpi-title">Tổng số người cao tuổi</span>
         </div>
-        <div class="kpi-footer">Số tài khoản trong nguoinha.sql</div>
+        <div class="kpi-footer" id="kpi-elderly-footer">Số hồ sơ trong Hồ sơ người cao tuổi</div>
     </div>
 
     <!-- Card 2: Đã hoàn thành hôm nay -->
@@ -61,10 +187,10 @@
             </div>
         </div>
         <div class="kpi-body">
-            <span class="kpi-value">0</span>
+            <span class="kpi-value" id="kpi-completed-count">1</span>
             <span class="kpi-title">Đã hoàn thành hôm nay</span>
         </div>
-        <div class="kpi-footer">0% tỷ lệ hoàn thành</div>
+        <div class="kpi-footer" id="kpi-completed-rate">20% tỷ lệ hoàn thành</div>
     </div>
 
     <!-- Card 3: Cảnh báo sức khỏe -->
@@ -80,10 +206,10 @@
             </div>
         </div>
         <div class="kpi-body">
-            <span class="kpi-value">0</span>
+            <span class="kpi-value">1</span>
             <span class="kpi-title">Cảnh báo sức khỏe</span>
         </div>
-        <div class="kpi-footer">0 mức cao, 0 trung bình</div>
+        <div class="kpi-footer">1 mức cao, 0 trung bình</div>
     </div>
 
     <!-- Card 4: Lịch chăm sóc hôm nay -->
@@ -100,10 +226,10 @@
             </div>
         </div>
         <div class="kpi-body">
-            <span class="kpi-value">0</span>
+            <span class="kpi-value" id="kpi-total-schedule">5</span>
             <span class="kpi-title">Lịch chăm sóc hôm nay</span>
         </div>
-        <div class="kpi-footer">0 chưa thực hiện</div>
+        <div class="kpi-footer" id="kpi-uncompleted-text">4 chưa thực hiện</div>
     </div>
 </section>
 
@@ -118,7 +244,6 @@
                 <a href="@Url.Action("Health", "Home")" class="dashboard-card-link">Xem chi tiết &rarr;</a>
             </div>
             <div class="chart-container-inner">
-                <!-- Empty Chart coordinate axis -->
                 <svg viewBox="0 0 700 230" class="chart-svg-graphic">
                     <!-- Grid horizontal lines -->
                     <line x1="50" y1="30" x2="680" y2="30" class="chart-grid-line" />
@@ -140,76 +265,130 @@
                     <line x1="50" y1="190" x2="680" y2="190" class="chart-axis-line" />
                     
                     <!-- X Axis labels -->
-                    <text x="50" y="210" text-anchor="middle" class="chart-axis-text">T2</text>
-                    <text x="155" y="210" text-anchor="middle" class="chart-axis-text">T3</text>
-                    <text x="260" y="210" text-anchor="middle" class="chart-axis-text">T4</text>
-                    <text x="365" y="210" text-anchor="middle" class="chart-axis-text">T5</text>
-                    <text x="470" y="210" text-anchor="middle" class="chart-axis-text">T6</text>
-                    <text x="575" y="210" text-anchor="middle" class="chart-axis-text">T7</text>
-                    <text x="680" y="210" text-anchor="middle" class="chart-axis-text">CN</text>
+                    <text x="50" y="210" text-anchor="middle" class="chart-axis-text">26/08</text>
+                    <text x="155" y="210" text-anchor="middle" class="chart-axis-text">27/08</text>
+                    <text x="260" y="210" text-anchor="middle" class="chart-axis-text">28/08</text>
+                    <text x="365" y="210" text-anchor="middle" class="chart-axis-text">29/08</text>
+                    <text x="470" y="210" text-anchor="middle" class="chart-axis-text">30/08</text>
+                    <text x="575" y="210" text-anchor="middle" class="chart-axis-text">31/08</text>
+                    <text x="680" y="210" text-anchor="middle" class="chart-axis-text" font-weight="700" fill="#0ba5ec">01/09</text>
+
+                    <!-- Trend lines -->
+                    <path d="M 50 52 L 155 50 L 260 48 L 365 45 L 470 48 L 575 44" stroke="#f04438" stroke-width="2.5" fill="none" />
+                    <path d="M 50 102 L 155 100 L 260 98 L 365 96 L 470 98 L 575 95" stroke="#f79009" stroke-width="2.5" fill="none" />
+                    <path d="M 50 115 L 155 112 L 260 110 L 365 108 L 470 110 L 575 109" stroke="#12b76a" stroke-width="2.5" fill="none" />
                 </svg>
                 
                 <div class="chart-legend">
                     <div class="chart-legend-item">
-                        <span class="chart-legend-color" style="background-color: #0ba5ec;"></span>
+                        <span class="chart-legend-color" style="background-color: #f04438;"></span>
                         <span>Huyết áp tâm thu</span>
+                    </div>
+                    <div class="chart-legend-item">
+                        <span class="chart-legend-color" style="background-color: #f79009;"></span>
+                        <span>Huyết áp tâm trương</span>
                     </div>
                     <div class="chart-legend-item">
                         <span class="chart-legend-color" style="background-color: #12b76a;"></span>
                         <span>Nhịp tim</span>
                     </div>
-                    <div class="chart-legend-item">
-                        <span class="chart-legend-color" style="background-color: #f79009;"></span>
-                        <span>Nhiệt độ</span>
-                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- 2. Việc cần làm hôm nay (Empty list) -->
+        <!-- 2. Việc cần làm hôm nay (Chỉ lấy những việc chưa hoàn thành từ Lịch chăm sóc) -->
         <div class="dashboard-card">
             <div class="dashboard-card-header">
                 <h2 class="dashboard-card-title">Việc cần làm hôm nay</h2>
                 <a href="@Url.Action("Schedule", "Home")" class="dashboard-card-link">Xem tất cả &rarr;</a>
             </div>
-            <div class="empty-state">
-                <!-- Check Square Outline Icon -->
+
+            <!-- Dynamic Uncompleted Tasks Container -->
+            <div class="dash-todo-list" id="dash-todo-container">
+                <!-- Populated dynamically: Only todo & pending tasks -->
+            </div>
+
+            <!-- Empty state when all tasks are done -->
+            <div class="empty-state" id="dash-todo-empty" style="display: none;">
                 <svg viewBox="0 0 24 24">
                     <polyline points="9 11 12 14 22 4" />
                     <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
                 </svg>
-                <p class="empty-state-text">Không có công việc cần thực hiện hôm nay.</p>
+                <p class="empty-state-text">Không có công việc cần thực hiện hôm nay (Đã hoàn thành tất cả).</p>
             </div>
         </div>
 
-        <!-- 3. Hoạt động gần đây (Empty list) -->
+        <!-- 3. Hoạt động gần đây -->
         <div class="dashboard-card">
             <div class="dashboard-card-header">
                 <h2 class="dashboard-card-title">Hoạt động gần đây</h2>
             </div>
-            <div class="empty-state">
-                <!-- Activity Pulse Icon -->
-                <svg viewBox="0 0 24 24">
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                </svg>
-                <p class="empty-state-text">Chưa có hoạt động nào được thực hiện gần đây.</p>
+            <div class="dash-activity-list" id="dash-activity-container">
+                <div class="dash-activity-item">
+                    <div class="dash-activity-icon icon-blue">
+                        <!-- Pulse Icon -->
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                        </svg>
+                    </div>
+                    <div class="dash-activity-content">
+                        <span class="dash-activity-title">Đã cập nhật chỉ số huyết áp</span>
+                        <span class="dash-activity-meta">Nguyễn Văn An &middot; Nguyễn Thị Lan &middot; 09:15</span>
+                    </div>
+                </div>
+
+                <div class="dash-activity-item">
+                    <div class="dash-activity-icon icon-green">
+                        <!-- Check Circle Icon -->
+                        <svg viewBox="0 0 24 24">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        </svg>
+                    </div>
+                    <div class="dash-activity-content">
+                        <span class="dash-activity-title">Đã xác nhận cấp thuốc</span>
+                        <span class="dash-activity-meta">Lê Văn Bình &middot; Phạm Thị Mai &middot; 09:00</span>
+                    </div>
+                </div>
+
+                <div class="dash-activity-item">
+                    <div class="dash-activity-icon icon-orange">
+                        <!-- Activity Icon -->
+                        <svg viewBox="0 0 24 24">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                        </svg>
+                    </div>
+                    <div class="dash-activity-content">
+                        <span class="dash-activity-title">Đã hoàn thành trị liệu khớp gối</span>
+                        <span class="dash-activity-meta">Lê Văn Bình &middot; Lê Hoàng C &middot; 08:30</span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- 4. Cảnh báo sức khỏe (Empty list) -->
+        <!-- 4. Cảnh báo sức khỏe -->
         <div class="dashboard-card">
             <div class="dashboard-card-header">
                 <h2 class="dashboard-card-title">Cảnh báo sức khỏe</h2>
-                <a href="#" class="dashboard-card-link">Xem tất cả &rarr;</a>
+                <a href="@Url.Action("Health", "Home")" class="dashboard-card-link">Xem tất cả &rarr;</a>
             </div>
-            <div class="empty-state">
-                <!-- Warning shield icon -->
+            
+            <!-- Dynamic Health Alerts List -->
+            <div class="dash-activity-list" id="dash-alerts-container">
+                <!-- Dynamically populated from today's updates -->
+            </div>
+
+            <!-- Empty state when no alerts for today -->
+            <div class="empty-state" id="dash-alerts-empty" style="display: none;">
                 <svg viewBox="0 0 24 24">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     <line x1="12" y1="8" x2="12" y2="12" />
                     <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
-                <p class="empty-state-text">Không có cảnh báo sức khỏe bất thường.</p>
+                <p class="empty-state-text">Không có cảnh báo sức khỏe bất thường trong ngày hôm nay.</p>
             </div>
         </div>
     </div>
@@ -235,27 +414,27 @@
                 </div>
             </div>
             <div class="ai-actions">
-                <button class="ai-btn">
+                <button class="ai-btn" onclick="location.href='@Url.Action("Health", "Home")'">
                     <span>Phân tích xu hướng sức khỏe</span>
                     <!-- Right Arrow Icon -->
                     <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
                 </button>
-                <button class="ai-btn">
+                <button class="ai-btn" onclick="location.href='@Url.Action("Schedule", "Home")'">
                     <span>Gợi ý lịch chăm sóc tối ưu</span>
                     <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
                 </button>
-                <button class="ai-btn">
-                    <span>Tóm tắt báo cáo tuần</span>
+                <button class="ai-btn" onclick="location.href='@Url.Action("Residents", "Home")'">
+                    <span>Tra cứu hồ sơ người cao tuổi</span>
                     <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
                 </button>
-                <button class="ai-btn">
-                    <span>Cảnh báo nguy cơ</span>
+                <button class="ai-btn" onclick="location.href='@Url.Action("Health", "Home")'">
+                    <span>Cảnh báo nguy cơ sức khỏe</span>
                     <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6" /></svg>
                 </button>
             </div>
         </div>
 
-        <!-- Quick Statistics Card (0%) -->
+        <!-- Quick Statistics Card -->
         <div class="stats-card">
             <h2 class="stats-title">Thống kê nhanh</h2>
             <div class="stats-list">
@@ -263,10 +442,10 @@
                 <div class="stats-item">
                     <div class="stats-label-wrapper">
                         <span>Tỷ lệ hoàn thành</span>
-                        <span class="stats-value">0%</span>
+                        <span class="stats-value" id="stats-complete-pct">20%</span>
                     </div>
                     <div class="stats-progress-track">
-                        <div class="stats-progress-bar progress-blue" style="width: 0%;"></div>
+                        <div class="stats-progress-bar progress-blue" id="stats-complete-bar" style="width: 20%;"></div>
                     </div>
                 </div>
 
@@ -274,24 +453,325 @@
                 <div class="stats-item">
                     <div class="stats-label-wrapper">
                         <span>Tuân thủ thuốc</span>
-                        <span class="stats-value">0%</span>
+                        <span class="stats-value">85%</span>
                     </div>
                     <div class="stats-progress-track">
-                        <div class="stats-progress-bar progress-green" style="width: 0%;"></div>
+                        <div class="stats-progress-bar progress-green" style="width: 85%;"></div>
                     </div>
                 </div>
 
                 <!-- Stat 3: Cảnh báo xử lý -->
                 <div class="stats-item">
                     <div class="stats-label-wrapper">
-                        <span>Cảnh báo xử lý</span>
-                        <span class="stats-value">0%</span>
+                        <span>Cảnh báo đã xử lý</span>
+                        <span class="stats-value" id="stats-alerts-handled">100%</span>
                     </div>
                     <div class="stats-progress-track">
-                        <div class="stats-progress-bar progress-orange" style="width: 0%;"></div>
+                        <div class="stats-progress-bar progress-orange" id="stats-alerts-bar" style="width: 100%;"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            // Default baseline tasks strictly matching nguoinha.sql
+            const defaultTasks = [
+                {
+                    id: "task-1",
+                    name: "Uống thuốc sáng",
+                    time: "08:00",
+                    patientName: "Nguyễn Văn An",
+                    patientRoom: "201",
+                    status: "todo",
+                    type: "Chăm sóc",
+                    note: "Uống thuốc sau khi ăn no"
+                },
+                {
+                    id: "task-2",
+                    name: "Vật lý trị liệu",
+                    time: "10:00",
+                    patientName: "Lê Văn Bình",
+                    patientRoom: "102",
+                    status: "pending",
+                    type: "Y tế",
+                    note: "Tập phục hồi chức năng khớp gối"
+                },
+                {
+                    id: "task-3",
+                    name: "Đo huyết áp & khám định kỳ",
+                    time: "14:00",
+                    patientName: "Phạm Thị Cúc",
+                    patientRoom: "305",
+                    status: "todo",
+                    type: "Y tế",
+                    note: "Kiểm tra huyết áp và chỉ số sức khỏe chiều"
+                },
+                {
+                    id: "task-4",
+                    name: "Chăm sóc cá nhân",
+                    time: "16:00",
+                    patientName: "Nguyễn Văn An",
+                    patientRoom: "201",
+                    status: "todo",
+                    type: "Chăm sóc",
+                    note: "Hỗ trợ vận động nhẹ ngoài sân vườn"
+                },
+                {
+                    id: "task-5",
+                    name: "Uống thuốc tối",
+                    time: "20:00",
+                    patientName: "Lê Văn Bình",
+                    patientRoom: "102",
+                    status: "done",
+                    type: "Chăm sóc",
+                    note: "Uống thuốc theo đơn bác sĩ trước khi ngủ"
+                }
+            ];
+
+            // 1. Retrieve current tasks from shared storage
+            let allTasks = [];
+            const savedSchedule = localStorage.getItem("silvercare_schedules_v2");
+            if (savedSchedule) {
+                try {
+                    allTasks = JSON.parse(savedSchedule);
+                } catch (e) {
+                    allTasks = [...defaultTasks];
+                }
+            } else {
+                allTasks = [...defaultTasks];
+                localStorage.setItem("silvercare_schedules_v2", JSON.stringify(allTasks));
+            }
+
+            // 2. Filter ONLY uncompleted tasks (exclude tasks with status === "done")
+            const uncompletedTasks = allTasks.filter(t => t.status !== "done");
+
+            // Sort uncompleted tasks by time
+            uncompletedTasks.sort((a, b) => a.time.localeCompare(b.time));
+
+            // 3. Render "Việc cần làm hôm nay"
+            const container = document.getElementById("dash-todo-container");
+            const emptyState = document.getElementById("dash-todo-empty");
+
+            if (container) {
+                container.innerHTML = "";
+
+                if (uncompletedTasks.length === 0) {
+                    if (emptyState) emptyState.style.display = "flex";
+                } else {
+                    if (emptyState) emptyState.style.display = "none";
+
+                    uncompletedTasks.forEach(task => {
+                        let badgeHtml = `<span class="dash-todo-badge badge-dash-todo">Chưa thực hiện</span>`;
+                        if (task.status === "pending") {
+                            badgeHtml = `<span class="dash-todo-badge badge-dash-pending">Đang chờ</span>`;
+                        }
+
+                        const itemEl = document.createElement("div");
+                        itemEl.className = "dash-todo-item";
+                        itemEl.innerHTML = `
+                            <span class="dash-todo-time">${task.time}</span>
+                            <div class="dash-todo-info">
+                                <span class="dash-todo-title">${task.name}</span>
+                                <span class="dash-todo-meta">${task.patientName} &middot; Phòng ${task.patientRoom}</span>
+                            </div>
+                            <div class="dash-todo-action">
+                                ${badgeHtml}
+                            </div>
+                        `;
+                        container.appendChild(itemEl);
+                    });
+                }
+            }
+
+            // 4. Update KPI numbers dynamically
+            const totalCount = allTasks.length;
+            const completedCount = allTasks.filter(t => t.status === "done").length;
+            const uncompletedCount = uncompletedTasks.length;
+            const completionRate = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+            const kpiCompletedCount = document.getElementById("kpi-completed-count");
+            const kpiCompletedRate = document.getElementById("kpi-completed-rate");
+            const kpiTotalSchedule = document.getElementById("kpi-total-schedule");
+            const kpiUncompletedText = document.getElementById("kpi-uncompleted-text");
+            const statsCompletePct = document.getElementById("stats-complete-pct");
+            const statsCompleteBar = document.getElementById("stats-complete-bar");
+
+            if (kpiCompletedCount) kpiCompletedCount.innerText = completedCount;
+            if (kpiCompletedRate) kpiCompletedRate.innerText = `${completionRate}% tỷ lệ hoàn thành`;
+            if (kpiTotalSchedule) kpiTotalSchedule.innerText = totalCount;
+            if (kpiUncompletedText) kpiUncompletedText.innerText = `${uncompletedCount} chưa thực hiện`;
+            if (statsCompletePct) statsCompletePct.innerText = `${completionRate}%`;
+            if (statsCompleteBar) statsCompleteBar.style.width = `${completionRate}%`;
+
+            // ==========================================================================
+            // 4.1 DYNAMIC ELDERLY COUNT (TỔNG SỐ NGƯỜI CAO TUỔI TỪ HỒ SƠ)
+            // ==========================================================================
+            const ELDERLY_STORAGE_KEY = "silvercare_elderly_profiles_v3";
+            let elderlyList = [];
+            const rawElderly = localStorage.getItem(ELDERLY_STORAGE_KEY);
+            if (rawElderly) {
+                try {
+                    const parsed = JSON.parse(rawElderly);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        elderlyList = parsed;
+                    }
+                } catch (e) {
+                    elderlyList = [];
+                }
+            }
+            if (!elderlyList || elderlyList.length === 0) {
+                elderlyList = [
+                    { id: "NCT001", name: "Nguyễn Văn An", room: "201" },
+                    { id: "NCT002", name: "Lê Văn Bình", room: "102" },
+                    { id: "NCT003", name: "Phạm Thị Cúc", room: "305" }
+                ];
+            }
+
+            const kpiElderlyCount = document.getElementById("kpi-elderly-count");
+            if (kpiElderlyCount) {
+                kpiElderlyCount.innerText = elderlyList.length;
+            }
+
+            // ==========================================================================
+            // 5. DYNAMIC HEALTH ALERTS (CẢNH BÁO SỨC KHỎE THEO NGÀY HÔM NAY)
+            // ==========================================================================
+            const residentInfoMap = {};
+            elderlyList.forEach((r, idx) => {
+                residentInfoMap[r.id] = { name: r.name, room: r.room };
+                residentInfoMap[`row-${idx + 1}`] = { name: r.name, room: r.room };
+            });
+
+            const now = new Date();
+            const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+            const HEALTH_STORAGE_KEY = "silvercare_health_today_updates_v3";
+
+            let todayHealthUpdates = {};
+            const rawHealth = localStorage.getItem(HEALTH_STORAGE_KEY) || localStorage.getItem("silvercare_health_today_updates_v2");
+            if (rawHealth) {
+                try {
+                    const parsed = JSON.parse(rawHealth);
+                    if (parsed._date === todayKey) {
+                        todayHealthUpdates = parsed;
+                    }
+                } catch (e) {
+                    todayHealthUpdates = {};
+                }
+            }
+
+            const alertsList = [];
+            let highAlertsCount = 0;
+            let mediumAlertsCount = 0;
+
+            // Only analyze if staff has updated today
+            Object.keys(todayHealthUpdates).forEach(key => {
+                if (key === "_date") return;
+                if (key.startsWith("row-") && (todayHealthUpdates["NCT001"] || todayHealthUpdates["NCT002"] || todayHealthUpdates["NCT003"])) return;
+                const m = todayHealthUpdates[key];
+                if (!m || typeof m.sys !== "number" || m.time === "Chưa đo hôm nay") return;
+                const res = residentInfoMap[key] || { name: "Người cao tuổi", room: "---" };
+
+                // 1. Check Blood Pressure
+                if (m.sys >= 140 || m.dia >= 90) {
+                    highAlertsCount++;
+                    alertsList.push({
+                        title: `Huyết áp tâm thu vượt ngưỡng: ${m.sys}/${m.dia} mmHg`,
+                        meta: `${res.name} · Phòng ${res.room} · ${m.time || 'Hôm nay'}`,
+                        level: "high"
+                    });
+                } else if ((m.sys >= 120 && m.sys < 140) || (m.dia >= 80 && m.dia < 90)) {
+                    mediumAlertsCount++;
+                    alertsList.push({
+                        title: `Huyết áp tiền tăng áp: ${m.sys}/${m.dia} mmHg`,
+                        meta: `${res.name} · Phòng ${res.room} · ${m.time || 'Hôm nay'}`,
+                        level: "medium"
+                    });
+                }
+
+                // 2. Check Heart Rate
+                if (m.hr > 100 || m.hr < 50) {
+                    highAlertsCount++;
+                    alertsList.push({
+                        title: `Nhịp tim bất thường (${m.hr < 50 ? 'quá chậm' : 'quá nhanh'}): ${m.hr} lần/phút`,
+                        meta: `${res.name} · Phòng ${res.room} · ${m.time || 'Hôm nay'}`,
+                        level: "high"
+                    });
+                } else if ((m.hr >= 50 && m.hr < 60) || (m.hr > 90 && m.hr <= 100)) {
+                    mediumAlertsCount++;
+                    alertsList.push({
+                        title: `Nhịp tim dao động: ${m.hr} lần/phút`,
+                        meta: `${res.name} · Phòng ${res.room} · ${m.time || 'Hôm nay'}`,
+                        level: "medium"
+                    });
+                }
+
+                // 3. Check Temperature
+                if (m.temp >= 38.5) {
+                    highAlertsCount++;
+                    alertsList.push({
+                        title: `Thân nhiệt cao (Sốt cao): ${m.temp}°C`,
+                        meta: `${res.name} · Phòng ${res.room} · ${m.time || 'Hôm nay'}`,
+                        level: "high"
+                    });
+                } else if (m.temp >= 37.5 && m.temp < 38.5) {
+                    mediumAlertsCount++;
+                    alertsList.push({
+                        title: `Thân nhiệt ấm (Sốt nhẹ): ${m.temp}°C`,
+                        meta: `${res.name} · Phòng ${res.room} · ${m.time || 'Hôm nay'}`,
+                        level: "medium"
+                    });
+                }
+            });
+
+            const totalAlerts = highAlertsCount + mediumAlertsCount;
+
+            // Update KPI Card 3: Cảnh báo sức khỏe
+            const kpiAlertsCard = document.querySelector(".kpi-icon-red") ? document.querySelector(".kpi-icon-red").closest(".kpi-card") : null;
+            if (kpiAlertsCard) {
+                const valEl = kpiAlertsCard.querySelector(".kpi-value");
+                const footerEl = kpiAlertsCard.querySelector(".kpi-footer");
+                if (valEl) valEl.innerText = totalAlerts;
+                if (footerEl) footerEl.innerText = `${highAlertsCount} mức cao, ${mediumAlertsCount} trung bình`;
+            }
+
+            // Render Alerts List on Dashboard
+            const alertsContainer = document.getElementById("dash-alerts-container");
+            const alertsEmpty = document.getElementById("dash-alerts-empty");
+
+            if (alertsContainer) {
+                alertsContainer.innerHTML = "";
+
+                if (alertsList.length === 0) {
+                    if (alertsEmpty) alertsEmpty.style.display = "flex";
+                } else {
+                    if (alertsEmpty) alertsEmpty.style.display = "none";
+
+                    alertsList.forEach(alert => {
+                        const isHigh = alert.level === "high";
+                        const item = document.createElement("div");
+                        item.className = "dash-activity-item";
+                        item.innerHTML = `
+                            <div class="dash-activity-icon" style="background-color: ${isHigh ? '#fef3f2' : '#fffaeb'}; color: ${isHigh ? '#f04438' : '#f79009'};">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                    <line x1="12" y1="9" x2="12" y2="13" />
+                                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                                </svg>
+                            </div>
+                            <div class="dash-activity-content">
+                                <span class="dash-activity-title" style="color: ${isHigh ? '#d92d20' : '#b54708'};">${alert.title}</span>
+                                <span class="dash-activity-meta">${alert.meta}</span>
+                            </div>
+                        `;
+                        alertsContainer.appendChild(item);
+                    });
+                }
+            }
+        });
+    </script>
+}
+
+
