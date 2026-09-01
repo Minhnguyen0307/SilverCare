@@ -638,10 +638,9 @@
     <!-- Room Filter -->
     <select class="filter-select" id="room-filter">
         <option value="all">Tất cả phòng</option>
-        <option value="101">Phòng 101</option>
+        <option value="201">Phòng 201</option>
         <option value="102">Phòng 102</option>
-        <option value="103">Phòng 103</option>
-        <option value="105">Phòng 105</option>
+        <option value="305">Phòng 305</option>
     </select>
 
     <!-- Status Filter -->
@@ -720,11 +719,9 @@
                 <label class="schedule-form-label" for="schedule-select-patient">Người cao tuổi <span class="required-asterisk">*</span></label>
                 <select class="schedule-form-select" id="schedule-select-patient" required>
                     <option value="" disabled selected>-- Chọn --</option>
-                    <option value="Nguyễn Văn An-101">Nguyễn Văn An - Phòng 101</option>
-                    <option value="Trần Thị Bảy-102">Trần Thị Bảy - Phòng 102</option>
-                    <option value="Lê Văn Cường-103">Lê Văn Cường - Phòng 103</option>
-                    <option value="Phạm Hồng Dương-105">Phạm Hồng Dương - Phòng 105</option>
-                    <option value="Võ Thị Hoa-101">Võ Thị Hoa - Phòng 101</option>
+                    <option value="Nguyễn Văn An-201">Nguyễn Văn An - Phòng 201</option>
+                    <option value="Lê Văn Bình-102">Lê Văn Bình - Phòng 102</option>
+                    <option value="Phạm Thị Cúc-305">Phạm Thị Cúc - Phòng 305</option>
                 </select>
             </div>
 
@@ -822,14 +819,14 @@
 
 @section Scripts {
     <script>
-        // Default static schedule items matching user screenshot
+        // Default static schedule items matching nguoinha.sql
         const defaultTasks = [
             {
                 id: "task-1",
                 name: "Uống thuốc sáng",
                 time: "08:00",
                 patientName: "Nguyễn Văn An",
-                patientRoom: "101",
+                patientRoom: "201",
                 status: "todo",
                 type: "Chăm sóc",
                 note: "Uống thuốc sau khi ăn no"
@@ -838,41 +835,41 @@
                 id: "task-2",
                 name: "Vật lý trị liệu",
                 time: "10:00",
-                patientName: "Lê Văn Cường",
-                patientRoom: "103",
+                patientName: "Lê Văn Bình",
+                patientRoom: "102",
                 status: "pending",
                 type: "Y tế",
                 note: "Tập phục hồi chức năng khớp gối"
             },
             {
                 id: "task-3",
-                name: "Vật lý trị liệu",
+                name: "Đo huyết áp & khám định kỳ",
                 time: "14:00",
-                patientName: "Lê Văn Cường",
-                patientRoom: "103",
+                patientName: "Phạm Thị Cúc",
+                patientRoom: "305",
                 status: "todo",
                 type: "Y tế",
-                note: "Tập phục hồi chức năng khớp gối"
+                note: "Kiểm tra huyết áp và chỉ số sức khỏe chiều"
             },
             {
                 id: "task-4",
                 name: "Chăm sóc cá nhân",
                 time: "16:00",
-                patientName: "Phạm Hồng Dương",
-                patientRoom: "105",
+                patientName: "Nguyễn Văn An",
+                patientRoom: "201",
                 status: "todo",
                 type: "Chăm sóc",
-                note: "Hỗ trợ tắm rửa và thay quần áo"
+                note: "Hỗ trợ vận động nhẹ ngoài sân vườn"
             },
             {
                 id: "task-5",
-                name: "Uống thuốc sáng",
-                time: "08:00",
-                patientName: "Nguyễn Văn An",
-                patientRoom: "101",
+                name: "Uống thuốc tối",
+                time: "20:00",
+                patientName: "Lê Văn Bình",
+                patientRoom: "102",
                 status: "done",
                 type: "Chăm sóc",
-                note: "Uống thuốc sau khi ăn no"
+                note: "Uống thuốc theo đơn bác sĩ trước khi ngủ"
             }
         ];
 
@@ -930,12 +927,12 @@
 
         // Load and render
         function loadAndRenderTasks() {
-            const saved = localStorage.getItem("silvercare_schedules");
+            const saved = localStorage.getItem("silvercare_schedules_v2");
             if (saved) {
                 currentTasks = JSON.parse(saved);
             } else {
                 currentTasks = [...defaultTasks];
-                localStorage.setItem("silvercare_schedules", JSON.stringify(currentTasks));
+                localStorage.setItem("silvercare_schedules_v2", JSON.stringify(currentTasks));
             }
 
             const container = document.getElementById("schedule-items-container");
@@ -996,7 +993,7 @@
             const task = currentTasks.find(t => t.id === taskId);
             if (task) {
                 task.status = "done";
-                localStorage.setItem("silvercare_schedules", JSON.stringify(currentTasks));
+                localStorage.setItem("silvercare_schedules_v2", JSON.stringify(currentTasks));
             }
 
             showToast("Đã đánh dấu hoàn thành!");
@@ -1069,7 +1066,33 @@
         if (openModalBtn) {
             if (modalOverlay) {
                 // Open Modal
-                openModalBtn.addEventListener("click", function() {
+                function populateSchedulePatients() {
+                    const raw = localStorage.getItem("silvercare_elderly_profiles_v3");
+                    let list = [
+                        { name: "Nguyễn Văn An", room: "201" },
+                        { name: "Lê Văn Bình", room: "102" },
+                        { name: "Phạm Thị Cúc", room: "305" }
+                    ];
+                    if (raw) {
+                        try {
+                            const parsed = JSON.parse(raw);
+                            if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
+                        } catch(e) {}
+                    }
+                    if (selectPatient) {
+                        selectPatient.innerHTML = `<option value="" disabled selected>-- Chọn --</option>` + list.map(r => {
+                            const roomClean = r.room ? r.room.replace(/^Phòng\s*/i, "") : "---";
+                            return `<option value="${r.name}-${roomClean}">${r.name} - Phòng ${roomClean}</option>`;
+                        }).join("");
+                    }
+                }
+
+                populateSchedulePatients();
+
+                openModalBtn.addEventListener("click", function (e) {
+                    e.preventDefault();
+
+                    populateSchedulePatients();
                     // Reset form values
                     inputName.value = "";
                     selectPatient.selectedIndex = 0;
@@ -1140,7 +1163,7 @@
                             note: note
                         };
                         currentTasks.push(newTaskObj);
-                        localStorage.setItem("silvercare_schedules", JSON.stringify(currentTasks));
+                        localStorage.setItem("silvercare_schedules_v2", JSON.stringify(currentTasks));
 
                         // Render and sort all tasks
                         loadAndRenderTasks();
