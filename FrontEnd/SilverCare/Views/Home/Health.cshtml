@@ -10,6 +10,10 @@
         new ResidentHealth { Id = "row-2", Initials = "LVB", Name = "Lê Văn Bình", Room = "102", Systolic = 124, Diastolic = 73, HeartRate = 68, Temperature = 37.2, LastUpdated = "14:43 hôm nay" },
         new ResidentHealth { Id = "row-3", Initials = "PTC", Name = "Phạm Thị Cúc", Room = "305", Systolic = 105, Diastolic = 65, HeartRate = 83, Temperature = 37.6, LastUpdated = "14:43 hôm nay" }
     };
+
+    // Capture logged-in user profile name
+    var fullName = TempData["FullName"] as string ?? "Nguyễn Thị Lan";
+    TempData.Keep("FullName");
 }
 
 @functions {
@@ -54,6 +58,17 @@
         return ("Bình thường", "severity-normal");
     }
 }
+
+<style>
+    @@keyframes chartPulseGlow {
+        0% { box-shadow: 0 0 0 0 rgba(11, 165, 236, 0.6); border-color: #0ba5ec; }
+        50% { box-shadow: 0 0 0 10px rgba(11, 165, 236, 0.2); border-color: #0ba5ec; }
+        100% { box-shadow: 0 1px 3px rgba(16, 24, 40, 0.05); border-color: var(--border-color); }
+    }
+    .interactive-chart-card.chart-highlight-pulse {
+        animation: chartPulseGlow 2s ease-out;
+    }
+</style>
 
 <div class="health-header">
     <h1 class="health-title">Theo dõi sức khỏe</h1>
@@ -113,7 +128,7 @@
 <!-- ==========================================================================
    INTERACTIVE PATIENT CHART CARD
    ========================================================================== -->
-<div class="interactive-chart-card">
+<div class="interactive-chart-card" id="chart-section">
     <div class="dashboard-card-header">
         <h2 class="dashboard-card-title" id="interactive-chart-title">Biểu đồ sức khỏe 7 ngày &mdash; Nguyễn Văn An</h2>
     </div>
@@ -398,7 +413,30 @@
                     localStorage.setItem(ELDERLY_STORAGE_KEY, JSON.stringify(currentResidents));
                 }
 
-                if (currentResidents.length > 0 && !currentResidents.some(r => r.id === selectedPatientId)) {
+                // Check URL parameters for direct resident targeting
+                const urlParams = new URLSearchParams(window.location.search);
+                const targetId = urlParams.get('residentId') || urlParams.get('id');
+                const targetName = urlParams.get('name');
+
+                if (targetId) {
+                    const found = currentResidents.find(r => 
+                        r.id === targetId || 
+                        (targetId === 'row-1' && r.id === 'NCT001') || 
+                        (targetId === 'row-2' && r.id === 'NCT002') || 
+                        (targetId === 'row-3' && r.id === 'NCT003') || 
+                        (targetId === 'NCT001' && r.id === 'row-1') || 
+                        (targetId === 'NCT002' && r.id === 'row-2') || 
+                        (targetId === 'NCT003' && r.id === 'row-3')
+                    );
+                    if (found) {
+                        selectedPatientId = found.id;
+                    }
+                } else if (targetName) {
+                    const found = currentResidents.find(r => r.name.toLowerCase().includes(targetName.toLowerCase()));
+                    if (found) {
+                        selectedPatientId = found.id;
+                    }
+                } else if (currentResidents.length > 0 && !currentResidents.some(r => r.id === selectedPatientId)) {
                     selectedPatientId = currentResidents[0].id;
                 }
             }
@@ -465,21 +503,6 @@
                     sys: [120, 122, 124, 128, 126, 124],
                     dia: [78, 79, 80, 82, 81, 79],
                     hr: [68, 70, 72, 71, 69, 68]
-                },
-                "row-1": {
-                    sys: [138, 140, 142, 145, 142, 146],
-                    dia: [88, 90, 92, 94, 92, 95],
-                    hr: [75, 78, 80, 82, 80, 81]
-                },
-                "row-2": {
-                    sys: [115, 116, 118, 120, 119, 117],
-                    dia: [70, 72, 74, 76, 75, 73],
-                    hr: [62, 60, 58, 59, 61, 57]
-                },
-                "row-3": {
-                    sys: [120, 122, 124, 128, 126, 124],
-                    dia: [78, 79, 80, 82, 81, 79],
-                    hr: [68, 70, 72, 71, 69, 68]
                 }
             };
 
@@ -493,10 +516,7 @@
             const defaultTodayUpdates = {
                 "NCT001": { sys: 132, dia: 85, hr: 74, temp: 36.8, time: "11:03 hôm nay" },
                 "NCT002": { sys: 124, dia: 73, hr: 68, temp: 37.2, time: "14:43 hôm nay" },
-                "NCT003": { sys: 105, dia: 65, hr: 83, temp: 37.6, time: "14:43 hôm nay" },
-                "row-1": { sys: 132, dia: 85, hr: 74, temp: 36.8, time: "11:03 hôm nay" },
-                "row-2": { sys: 124, dia: 73, hr: 68, temp: 37.2, time: "14:43 hôm nay" },
-                "row-3": { sys: 105, dia: 65, hr: 83, temp: 37.6, time: "14:43 hôm nay" }
+                "NCT003": { sys: 105, dia: 65, hr: 83, temp: 37.6, time: "14:43 hôm nay" }
             };
 
             function getTodayUpdates() {
@@ -504,6 +524,10 @@
                 if (!raw) return { ...defaultTodayUpdates };
                 try {
                     const parsed = JSON.parse(raw);
+                    // Remove any legacy row-X keys
+                    delete parsed["row-1"];
+                    delete parsed["row-2"];
+                    delete parsed["row-3"];
                     if (parsed._date === todayKey) {
                         return { ...defaultTodayUpdates, ...parsed };
                     }
@@ -518,13 +542,10 @@
                 all._date = todayKey;
                 all[residentId] = data;
 
-                // Sync alias if standard row
-                if (residentId === "NCT001") all["row-1"] = data;
-                if (residentId === "NCT002") all["row-2"] = data;
-                if (residentId === "NCT003") all["row-3"] = data;
-                if (residentId === "row-1") all["NCT001"] = data;
-                if (residentId === "row-2") all["NCT002"] = data;
-                if (residentId === "row-3") all["NCT003"] = data;
+                // Clean legacy aliases if present
+                delete all["row-1"];
+                delete all["row-2"];
+                delete all["row-3"];
 
                 localStorage.setItem(HEALTH_STORAGE_KEY, JSON.stringify(all));
             }
@@ -546,7 +567,7 @@
 
             // Get vitals for a resident
             function getResidentVitals(res, todayUpdates) {
-                const update = todayUpdates[res.id] || (res.id === "NCT001" ? todayUpdates["row-1"] : (res.id === "NCT002" ? todayUpdates["row-2"] : (res.id === "NCT003" ? todayUpdates["row-3"] : null)));
+                const update = todayUpdates[res.id];
                 if (update && typeof update.sys === "number" && update.time && update.time !== "Chưa đo hôm nay") {
                     return {
                         sys: update.sys,
@@ -747,6 +768,26 @@
                         targetRes.status = residentStatus;
                         localStorage.setItem(ELDERLY_STORAGE_KEY, JSON.stringify(currentResidents));
                     }
+
+                    // 3. Log to shared recent activities
+                    try {
+                        const rawActs = localStorage.getItem("silvercare_recent_activities_v2");
+                        let acts = rawActs ? JSON.parse(rawActs) : [];
+                        const staffName = "@fullName" || "Nguyễn Thị Lan";
+                        const residentName = targetRes ? targetRes.name : "Người cao tuổi";
+
+                        acts.unshift({
+                            id: "act-" + Date.now(),
+                            type: "health_update",
+                            title: `Đã cập nhật chỉ số huyết áp & sức khỏe (${sys}/${dia} mmHg, ${hr} bpm)`,
+                            patientName: residentName,
+                            staffName: staffName,
+                            time: `${hh}:${mm}`,
+                            iconType: "pulse",
+                            iconColor: "blue"
+                        });
+                        localStorage.setItem("silvercare_recent_activities_v2", JSON.stringify(acts.slice(0, 30)));
+                    } catch (e) {}
 
                     closeModal();
                     renderHealthTable();
@@ -1078,6 +1119,33 @@
             loadResidents();
             renderHealthTable();
             drawChart();
+
+            // Auto-scroll and highlight if navigating directly to a resident
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetResId = urlParams.get('residentId') || urlParams.get('id');
+            const targetName = urlParams.get('name');
+            if (targetResId || targetName || window.location.hash) {
+                setTimeout(() => {
+                    if (window.location.hash === '#chart-section') {
+                        const chartCard = document.getElementById("chart-section");
+                        if (chartCard) {
+                            chartCard.scrollIntoView({ behavior: "smooth", block: "center" });
+                            chartCard.classList.add("chart-highlight-pulse");
+                            setTimeout(() => chartCard.classList.remove("chart-highlight-pulse"), 2500);
+                        }
+                    } else {
+                        const targetRow = document.getElementById(selectedPatientId);
+                        if (targetRow) {
+                            targetRow.scrollIntoView({ behavior: "smooth", block: "center" });
+                            targetRow.style.transition = "background-color 0.5s ease";
+                            targetRow.style.backgroundColor = "#e0f2fe";
+                            setTimeout(() => {
+                                targetRow.style.backgroundColor = "";
+                            }, 2500);
+                        }
+                    }
+                }, 250);
+            }
         });
     </script>
 }

@@ -16,6 +16,10 @@
         _ => ""
     };
     var dateString = $"{dayOfWeekVi}, {now.Day} tháng {now.Month} năm {now.Year}";
+
+    // Capture logged-in user profile name
+    var fullName = TempData["FullName"] as string ?? "Nguyễn Thị Lan";
+    TempData.Keep("FullName");
 }
 
 <!-- Custom Styles for Schedule Page -->
@@ -678,7 +682,7 @@
             <path d="M9 11l3 3L22 4"></path>
             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
         </svg>
-        <p class="empty-schedule-text">Không có công việc cần thực hiện hôm nay.</p>
+        <p class="empty-schedule-text" id="empty-schedule-msg">Không có công việc cần thực hiện hôm nay.</p>
     </div>
 </div>
 
@@ -957,9 +961,20 @@
             }
 
             const emptyState = document.getElementById("empty-state");
+            const emptyMsg = document.getElementById("empty-schedule-msg");
             if (emptyState) {
                 if (visibleItems === 0) {
                     emptyState.style.display = "block";
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const paramName = urlParams.get('name');
+                    const selectedRoom = roomFilter ? roomFilter.value : 'all';
+                    if (paramName) {
+                        if (emptyMsg) emptyMsg.innerText = `Chưa có lịch chăm sóc của ${paramName}`;
+                    } else if (selectedRoom !== 'all') {
+                        if (emptyMsg) emptyMsg.innerText = `Chưa có lịch chăm sóc của Phòng ${selectedRoom}`;
+                    } else {
+                        if (emptyMsg) emptyMsg.innerText = "Không có công việc cần thực hiện hôm nay.";
+                    }
                 } else {
                     emptyState.style.display = "none";
                 }
@@ -994,6 +1009,29 @@
             if (task) {
                 task.status = "done";
                 localStorage.setItem("silvercare_schedules_v2", JSON.stringify(currentTasks));
+
+                // Log recent activity to shared storage
+                try {
+                    const rawActs = localStorage.getItem("silvercare_recent_activities_v2");
+                    let acts = rawActs ? JSON.parse(rawActs) : [];
+                    const nowD = new Date();
+                    const curH = String(nowD.getHours()).padStart(2, '0');
+                    const curM = String(nowD.getMinutes()).padStart(2, '0');
+                    const taskTitle = task.name.startsWith("Đã") ? task.name : `Đã hoàn thành ${task.name}`;
+
+                    acts.unshift({
+                        id: "act-" + Date.now(),
+                        taskId: taskId,
+                        type: "care_complete",
+                        title: taskTitle,
+                        patientName: task.patientName,
+                        staffName: "@fullName" || "Nguyễn Thị Lan",
+                        time: `${curH}:${curM}`,
+                        iconType: "check",
+                        iconColor: "green"
+                    });
+                    localStorage.setItem("silvercare_recent_activities_v2", JSON.stringify(acts.slice(0, 30)));
+                } catch (e) {}
             }
 
             showToast("Đã đánh dấu hoàn thành!");
@@ -1306,6 +1344,38 @@
         // Initial check
         document.addEventListener("DOMContentLoaded", function() {
             loadAndRenderTasks();
+
+            // Populate room filter dynamically with all resident rooms
+            const rawResidents = localStorage.getItem("silvercare_elderly_profiles_v3");
+            if (rawResidents && roomFilter) {
+                try {
+                    const parsed = JSON.parse(rawResidents);
+                    if (Array.isArray(parsed)) {
+                        const existingRooms = new Set(["201", "102", "305"]);
+                        parsed.forEach(r => {
+                            if (r.room) {
+                                const clean = r.room.replace(/\D/g, '');
+                                if (clean && !existingRooms.has(clean)) {
+                                    existingRooms.add(clean);
+                                    const opt = document.createElement("option");
+                                    opt.value = clean;
+                                    opt.innerText = `Phòng ${clean}`;
+                                    roomFilter.appendChild(opt);
+                                }
+                            }
+                        });
+                    }
+                } catch(e) {}
+            }
+
+            // Check URL parameters for initial room filtering
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramRoom = urlParams.get('room');
+            if (paramRoom && roomFilter) {
+                const clean = paramRoom.replace(/\D/g, '');
+                roomFilter.value = clean;
+            }
+
             applyFilters();
         });
     </script>

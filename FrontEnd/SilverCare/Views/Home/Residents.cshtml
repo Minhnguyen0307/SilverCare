@@ -300,6 +300,49 @@
         color: #b54708;
     }
 
+    /* Schedule Status & Type Badges */
+    .status-badge {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 12px;
+        white-space: nowrap;
+        display: inline-block;
+    }
+
+    .badge-done {
+        background-color: #ecfdf3;
+        color: #027a48;
+    }
+
+    .badge-pending {
+        background-color: #fffaeb;
+        color: #b54708;
+    }
+
+    .badge-todo {
+        background-color: #f2f4f7;
+        color: #344054;
+    }
+
+    .care-type-badge {
+        font-size: 11px;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 10px;
+        display: inline-block;
+    }
+
+    .type-medical {
+        background-color: #eff8ff;
+        color: #175cd3;
+    }
+
+    .type-care {
+        background-color: #ecfdf3;
+        color: #027a48;
+    }
+
     /* Detail Action Link */
     .btn-view-detail {
         display: inline-flex;
@@ -864,14 +907,56 @@
         </div>
         <div class="res-modal-footer" style="justify-content: space-between;">
             <div style="display: flex; gap: 8px;">
-                <a href="@Url.Action("Health", "Home")" class="btn-secondary-action" style="font-size: 13px; padding: 8px 12px;">
+                <a href="@Url.Action("Health", "Home")" id="btn-detail-health" class="btn-secondary-action" style="font-size: 13px; padding: 8px 12px; text-decoration: none;">
                     📈 Sức khỏe
                 </a>
-                <a href="@Url.Action("Schedule", "Home")" class="btn-secondary-action" style="font-size: 13px; padding: 8px 12px;">
-                    📅 Lịch chăm sóc
-                </a>
+                <button type="button" id="btn-detail-schedule" class="btn-secondary-action" style="font-size: 13px; padding: 8px 12px; cursor: pointer;">
+                    🗓️ Lịch chăm sóc
+                </button>
             </div>
             <button class="btn-secondary-action" id="btn-close-detail-footer">Đóng</button>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================================================
+   MODAL: LỊCH CHĂM SÓC NGƯỜI CAO TUỔI
+   ========================================================================== -->
+<div class="res-modal-overlay" id="resident-care-schedule-modal" style="z-index: 1000;">
+    <div class="res-modal-container" style="max-width: 600px;">
+        <div class="res-modal-header">
+            <div>
+                <h2 class="res-modal-title" style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 18px;">🗓️</span>
+                    <span>Lịch chăm sóc &mdash; <span id="care-schedule-resident-name">Phạm Thị Cúc</span></span>
+                </h2>
+                <div style="font-size: 13px; color: #667085; margin-top: 4px;" id="care-schedule-resident-meta">
+                    Mã: NCT003 &middot; Phòng 305
+                </div>
+            </div>
+            <button class="res-modal-close-btn" id="btn-close-care-schedule-modal" title="Đóng">
+                <svg viewBox="0 0 24 24">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+        <div class="res-modal-body" style="padding: 20px 24px; max-height: 60vh;">
+            <div id="care-schedule-list" style="display: flex; flex-direction: column; gap: 12px;">
+                <!-- Dynamically populated tasks or empty message -->
+            </div>
+        </div>
+        <div class="res-modal-footer" style="justify-content: space-between;">
+            <a href="#" id="btn-care-schedule-view-full" class="btn-secondary-action" style="font-size: 13px; text-decoration: none;">
+                <svg viewBox="0 0 24 24" style="width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2;">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                <span>Xem trên trang Lịch chăm sóc</span>
+            </a>
+            <button class="btn-secondary-action" id="btn-close-care-schedule-footer">Đóng</button>
         </div>
     </div>
 </div>
@@ -1127,16 +1212,33 @@
                 }
             }
 
+            // Default care tasks baseline
+            const defaultCareTasks = [
+                { id: "task-1", name: "Uống thuốc sáng", time: "08:00", patientName: "Nguyễn Văn An", patientRoom: "201", status: "todo", type: "Chăm sóc", note: "Uống thuốc sau khi ăn no" },
+                { id: "task-2", name: "Vật lý trị liệu", time: "10:00", patientName: "Lê Văn Bình", patientRoom: "102", status: "pending", type: "Y tế", note: "Tập phục hồi chức năng khớp gối" },
+                { id: "task-3", name: "Đo huyết áp & khám định kỳ", time: "14:00", patientName: "Phạm Thị Cúc", patientRoom: "305", status: "todo", type: "Y tế", note: "Kiểm tra huyết áp và chỉ số sức khỏe chiều" },
+                { id: "task-4", name: "Chăm sóc cá nhân", time: "16:00", patientName: "Nguyễn Văn An", patientRoom: "201", status: "todo", type: "Chăm sóc", note: "Hỗ trợ vận động nhẹ ngoài sân vườn" },
+                { id: "task-5", name: "Uống thuốc tối", time: "20:00", patientName: "Lê Văn Bình", patientRoom: "102", status: "done", type: "Chăm sóc", note: "Uống thuốc theo đơn bác sĩ trước khi ngủ" }
+            ];
+
             // ==========================================================================
             // DETAIL MODAL LOGIC
             // ==========================================================================
             const detailModal = document.getElementById("detail-resident-modal");
             const btnCloseDetail = document.getElementById("btn-close-detail-modal");
             const btnCloseDetailFooter = document.getElementById("btn-close-detail-footer");
+            let activeDetailResident = null;
 
             function openDetailModal(id) {
                 const res = currentResidents.find(r => r.id === id);
                 if (!res) return;
+                activeDetailResident = res;
+
+                // Update Sức khỏe button link directly to this resident's health chart
+                const btnHealth = document.getElementById("btn-detail-health");
+                if (btnHealth) {
+                    btnHealth.href = `@Url.Action("Health", "Home")?residentId=${encodeURIComponent(res.id)}#chart-section`;
+                }
 
                 document.getElementById("detail-avatar").innerText = res.initials || computeInitials(res.name);
                 document.getElementById("detail-fullname").innerText = res.name;
@@ -1171,6 +1273,144 @@
             if (detailModal) {
                 detailModal.addEventListener("click", function(e) {
                     if (e.target === detailModal) closeDetailModal();
+                });
+            }
+
+            // ==========================================================================
+            // CARE SCHEDULE POPUP MODAL LOGIC
+            // ==========================================================================
+            const careScheduleModal = document.getElementById("resident-care-schedule-modal");
+            const btnOpenCareSchedule = document.getElementById("btn-detail-schedule");
+            const btnCloseCareSchedule = document.getElementById("btn-close-care-schedule-modal");
+            const btnCloseCareScheduleFooter = document.getElementById("btn-close-care-schedule-footer");
+            const careScheduleList = document.getElementById("care-schedule-list");
+            const careScheduleResidentName = document.getElementById("care-schedule-resident-name");
+            const careScheduleResidentMeta = document.getElementById("care-schedule-resident-meta");
+            const btnCareScheduleViewFull = document.getElementById("btn-care-schedule-view-full");
+
+            function openCareScheduleModal(res) {
+                if (!res) return;
+
+                if (careScheduleResidentName) careScheduleResidentName.innerText = res.name;
+                if (careScheduleResidentMeta) careScheduleResidentMeta.innerHTML = `Mã: ${res.id} &middot; Phòng ${res.room}`;
+                if (btnCareScheduleViewFull) {
+                    const cleanRoom = res.room ? res.room.replace(/\D/g, '') : '';
+                    btnCareScheduleViewFull.href = `@Url.Action("Schedule", "Home")?room=${encodeURIComponent(cleanRoom)}&name=${encodeURIComponent(res.name)}`;
+                }
+
+                // Get tasks from localStorage or default
+                let allTasks = [];
+                const savedTasks = localStorage.getItem("silvercare_schedules_v2");
+                if (savedTasks) {
+                    try {
+                        allTasks = JSON.parse(savedTasks);
+                    } catch (e) {
+                        allTasks = [...defaultCareTasks];
+                    }
+                } else {
+                    allTasks = [...defaultCareTasks];
+                }
+
+                // Filter tasks matching this resident
+                const resNameNorm = res.name.toLowerCase().trim();
+                const resRoomNorm = res.room ? res.room.replace(/\D/g, '').trim() : '';
+
+                const matchedTasks = allTasks.filter(t => {
+                    const tName = (t.patientName || "").toLowerCase().trim();
+                    const tRoom = (t.patientRoom || "").replace(/\D/g, '').trim();
+
+                    if (tName === resNameNorm) return true;
+                    if (tName && resNameNorm && (tName.includes(resNameNorm) || resNameNorm.includes(tName))) return true;
+                    if (resRoomNorm && tRoom && resRoomNorm === tRoom && tName.includes(resNameNorm.split(' ').pop())) return true;
+                    return false;
+                });
+
+                if (matchedTasks.length > 0) {
+                    // Sort by time
+                    matchedTasks.sort((a, b) => (a.time || "").localeCompare(b.time || ""));
+
+                    careScheduleList.innerHTML = matchedTasks.map(task => {
+                        const isDone = task.status === "done";
+                        const isPending = task.status === "pending";
+                        const badgeClass = isDone ? "badge-done" : (isPending ? "badge-pending" : "badge-todo");
+                        const badgeText = isDone ? "Hoàn thành" : (isPending ? "Đang chờ" : "Chưa thực hiện");
+                        const typeClass = task.type === "Y tế" ? "type-medical" : "type-care";
+
+                        return `
+                            <div class="care-task-card" style="background: #ffffff; border: 1px solid #eaecf0; border-radius: 10px; padding: 14px 16px; display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; box-shadow: 0 1px 2px rgba(16,24,40,0.04);">
+                                <div style="display: flex; gap: 12px; align-items: flex-start;">
+                                    <div style="background: #f0f9ff; color: #026aa2; font-weight: 700; font-size: 13px; padding: 6px 10px; border-radius: 8px; border: 1px solid #b9e6fe; white-space: nowrap;">
+                                        ${task.time}
+                                    </div>
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                            <span style="font-weight: 600; color: #101828; font-size: 14px;">${task.name}</span>
+                                            <span class="care-type-badge ${typeClass}">
+                                                ${task.type || "Chăm sóc"}
+                                            </span>
+                                        </div>
+                                        ${task.note ? `
+                                            <div style="font-size: 12px; color: #475467; margin-top: 5px; display: flex; align-items: center; gap: 4px;">
+                                                <svg viewBox="0 0 24 24" style="width: 13px; height: 13px; stroke: #98a2b3; fill: none; stroke-width: 2; flex-shrink: 0;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                                                <span>${task.note}</span>
+                                            </div>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                                    <span class="status-badge ${badgeClass}">
+                                        ${badgeText}
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    }).join("");
+                } else {
+                    // Empty state matching prompt requirement exactly: "Chưa có lịch chăm sóc của ..."
+                    careScheduleList.innerHTML = `
+                        <div class="care-schedule-empty" style="text-align: center; padding: 36px 16px;">
+                            <div style="width: 56px; height: 56px; border-radius: 50%; background: #f2f4f7; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 14px;">
+                                <svg viewBox="0 0 24 24" style="width: 28px; height: 28px; stroke: #667085; stroke-width: 1.8; fill: none;">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                                </svg>
+                            </div>
+                            <div style="font-size: 16px; font-weight: 700; color: #101828; margin-bottom: 6px;">
+                                Chưa có lịch chăm sóc của ${res.name}
+                            </div>
+                            <div style="font-size: 13px; color: #667085; max-width: 380px; margin: 0 auto 16px auto; line-height: 1.5;">
+                                Hiện tại chưa có công việc hoặc lịch chăm sóc nào được lên lịch cho người cao tuổi này trong hôm nay.
+                            </div>
+                            <a href="@Url.Action("Schedule", "Home")" class="btn-primary-action" style="font-size: 13px; padding: 8px 16px; display: inline-flex; text-decoration: none;">
+                                + Tạo lịch chăm sóc
+                            </a>
+                        </div>
+                    `;
+                }
+
+                careScheduleModal.classList.add("active");
+            }
+
+            function closeCareScheduleModal() {
+                careScheduleModal.classList.remove("active");
+            }
+
+            if (btnOpenCareSchedule) {
+                btnOpenCareSchedule.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    if (activeDetailResident) {
+                        openCareScheduleModal(activeDetailResident);
+                    }
+                });
+            }
+
+            if (btnCloseCareSchedule) btnCloseCareSchedule.addEventListener("click", closeCareScheduleModal);
+            if (btnCloseCareScheduleFooter) btnCloseCareScheduleFooter.addEventListener("click", closeCareScheduleModal);
+            if (careScheduleModal) {
+                careScheduleModal.addEventListener("click", function(e) {
+                    if (e.target === careScheduleModal) closeCareScheduleModal();
                 });
             }
 
@@ -1348,6 +1588,25 @@
             // Initialize
             loadResidents();
             renderTable();
+
+            // Auto-open detail modal if navigated with residentId/id
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetResId = urlParams.get('residentId') || urlParams.get('id');
+            const targetName = urlParams.get('name');
+            if (targetResId || targetName) {
+                setTimeout(() => {
+                    let target = null;
+                    if (targetResId) {
+                        target = currentResidents.find(r => r.id === targetResId);
+                    }
+                    if (!target && targetName) {
+                        target = currentResidents.find(r => r.name.toLowerCase().includes(targetName.toLowerCase()));
+                    }
+                    if (target) {
+                        openDetailModal(target.id);
+                    }
+                }, 200);
+            }
         });
     </script>
 }
