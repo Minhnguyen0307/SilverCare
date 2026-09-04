@@ -289,6 +289,40 @@ namespace SilverCare.Controllers
             return View();
         }
 
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
+        [HttpGet]
+        public IActionResult Report()
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("IsLoggedIn")))
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var fullName = HttpContext.Session.GetString("FullName");
+            var role = HttpContext.Session.GetString("Role");
+            if (!string.IsNullOrEmpty(fullName)) TempData["FullName"] = fullName;
+            if (!string.IsNullOrEmpty(role)) TempData["Role"] = role;
+
+            return View();
+        }
+
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
+        [HttpGet]
+        public IActionResult Notifications()
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("IsLoggedIn")))
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var fullName = HttpContext.Session.GetString("FullName");
+            var role = HttpContext.Session.GetString("Role");
+            if (!string.IsNullOrEmpty(fullName)) TempData["FullName"] = fullName;
+            if (!string.IsNullOrEmpty(role)) TempData["Role"] = role;
+
+            return View();
+        }
+
         public IActionResult LoginSuccess(string role)
         {
             ViewBag.Role = role;
