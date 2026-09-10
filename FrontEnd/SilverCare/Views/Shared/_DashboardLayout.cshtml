@@ -188,11 +188,11 @@
         <main class="main-content" id="main-content">
             <!-- TOPBAR -->
             <header class="topbar">
-                <!-- Search bar -->
+                <!-- Topbar Search -->
                 <div class="topbar-search">
                     <svg viewBox="0 0 24 24">
-                        <circle cx="11" cy="11" r="8" />
-                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                     </svg>
                     <input type="text" class="topbar-search-input" placeholder="Tìm kiếm hồ sơ, người cao tuổi, lịch hẹn..." />
                 </div>
@@ -257,6 +257,14 @@
                                     </a>
                                 </li>
                                 <li>
+                                    <a href="@Url.Action("Profile", "Home", new { tab = "permissions" })" class="profile-dropdown-item">
+                                        <svg class="dropdown-item-icon" viewBox="0 0 24 24">
+                                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                        </svg>
+                                        <span>Phân quyền tài khoản</span>
+                                    </a>
+                                </li>
+                                <li>
                                     <a href="@Url.Action("Logout", "Home")" class="profile-dropdown-item logout-item" id="logoutBtn" onclick="handleLogout(event, '@Url.Action("Logout", "Home")')">
                                         <svg class="dropdown-item-icon logout-icon" viewBox="0 0 24 24">
                                             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -276,6 +284,9 @@
             <section class="content-body">
                 @RenderBody()
             </section>
+
+            <!-- Floating Help Button -->
+            <button type="button" class="floating-help-btn" title="Trợ giúp & Hỗ trợ">?</button>
         </main>
     </div>
 

@@ -1062,23 +1062,40 @@
             // Sync resident status with health vitals from Health tracking
             // Mapping: Bình thường --> Đang ổn định, Trung bình --> Trung bình, Cao --> Cần theo dõi
             function getUpdatedStatusFromHealth(resId, defaultStatus) {
-                const rawHealth = localStorage.getItem("silvercare_health_today_updates_v3") || localStorage.getItem("silvercare_health_today_updates_v2");
-                if (rawHealth) {
-                    try {
-                        const healthData = JSON.parse(rawHealth);
-                        const rowId = resId === "NCT001" ? "row-1" : (resId === "NCT002" ? "row-2" : (resId === "NCT003" ? "row-3" : ""));
-                        const update = healthData[resId] || (rowId ? healthData[rowId] : null);
-                        if (update && typeof update.sys === "number") {
-                            const bpDiff = update.sys - update.dia;
-                            if (update.sys >= 140 || update.dia >= 90 || bpDiff <= 20 || update.hr > 100 || update.hr < 50 || update.temp >= 38.5 || update.temp < 35.0) {
-                                return "Cần theo dõi"; // Cao
-                            }
-                            if ((update.sys >= 120 && update.sys <= 139) || (update.dia >= 80 && update.dia <= 89) || (update.hr >= 91 && update.hr <= 100) || (update.hr >= 50 && update.hr <= 59) || (update.temp >= 37.5 && update.temp <= 38.4)) {
-                                return "Trung bình"; // Trung bình
-                            }
-                            return "Đang ổn định"; // Bình thường
+                const now = new Date();
+                const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                
+                let update = null;
+                try {
+                    const rawV4 = localStorage.getItem("silvercare_health_records_v4");
+                    if (rawV4) {
+                        const records = JSON.parse(rawV4);
+                        if (records[resId]?.[todayKey]) {
+                            update = records[resId][todayKey];
                         }
-                    } catch (e) {}
+                    }
+                } catch(e) {}
+
+                if (!update) {
+                    const rawHealth = localStorage.getItem("silvercare_health_today_updates_v3") || localStorage.getItem("silvercare_health_today_updates_v2");
+                    if (rawHealth) {
+                        try {
+                            const healthData = JSON.parse(rawHealth);
+                            const rowId = resId === "NCT001" ? "row-1" : (resId === "NCT002" ? "row-2" : (resId === "NCT003" ? "row-3" : ""));
+                            update = healthData[resId] || (rowId ? healthData[rowId] : null);
+                        } catch (e) {}
+                    }
+                }
+
+                if (update && typeof update.sys === "number") {
+                    const bpDiff = update.sys - update.dia;
+                    if (update.sys >= 140 || update.dia >= 90 || bpDiff <= 20 || update.hr > 100 || update.hr < 50 || update.temp >= 38.5 || update.temp < 35.0) {
+                        return "Cần theo dõi"; // Cao
+                    }
+                    if ((update.sys >= 120 && update.sys <= 139) || (update.dia >= 80 && update.dia <= 89) || (update.hr >= 91 && update.hr <= 100) || (update.hr >= 50 && update.hr <= 59) || (update.temp >= 37.5 && update.temp <= 38.4)) {
+                        return "Trung bình"; // Trung bình
+                    }
+                    return "Đang ổn định"; // Bình thường
                 }
                 return defaultStatus;
             }

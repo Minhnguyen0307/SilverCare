@@ -340,47 +340,48 @@
         transform: translateX(22px);
     }
 
-    /* Permissions List */
-    .permissions-badge {
-        display: inline-block;
-        padding: 6px 14px;
-        background-color: #e0f2fe;
-        color: #0284c7;
-        font-weight: 600;
-        font-size: 13px;
-        border-radius: 20px;
-        margin-bottom: 20px;
-    }
-
-    .permissions-list {
-        list-style: none;
-        margin: 0 0 28px 0;
-        padding: 0;
+    /* Permissions Table List */
+    .permissions-table-list {
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 26px;
+        margin-top: 10px;
     }
 
-    .permission-item {
+    .permission-row-item {
         display: flex;
         align-items: center;
-        gap: 12px;
-        font-size: 14px;
-        color: #344054;
+        justify-content: space-between;
+        padding: 2px 0;
     }
 
-    .permission-icon {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        background-color: #ecfdf3;
-        color: #12b76a;
-        display: flex;
+    .permission-title {
+        font-size: 15px;
+        font-weight: 500;
+        color: #344054;
+        letter-spacing: -0.01em;
+    }
+
+    .permission-status-badge {
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 12px;
-        font-weight: 700;
-        flex-shrink: 0;
+        padding: 6px 18px;
+        border-radius: 20px;
+        font-size: 13.5px;
+        font-weight: 500;
+        white-space: nowrap;
+        user-select: none;
+    }
+
+    .permission-status-badge.badge-granted {
+        background-color: #ecfdf3;
+        color: #12b76a;
+    }
+
+    .permission-status-badge.badge-denied {
+        background-color: #f2f4f7;
+        color: #98a2b3;
     }
 </style>
 
@@ -587,32 +588,77 @@
         <div class="settings-tab-pane @(activeTab == "permissions" ? "active" : "")" id="tab-permissions">
             <h2 class="settings-content-title">Phân quyền tài khoản</h2>
 
-            <div class="permissions-badge">
-                Vai trò: @roleSubtitle
-            </div>
+            <div class="permissions-table-list">
+                <!-- 1. Xem hồ sơ người cao tuổi -->
+                <div class="permission-row-item">
+                    <span class="permission-title">Xem hồ sơ người cao tuổi</span>
+                    <span class="permission-status-badge badge-granted">Có quyền</span>
+                </div>
 
-            <ul class="permissions-list">
-                <li class="permission-item">
-                    <span class="permission-icon">✓</span>
-                    <span>Xem danh sách và hồ sơ chi tiết người cao tuổi</span>
-                </li>
-                <li class="permission-item">
-                    <span class="permission-icon">✓</span>
-                    <span>Cập nhật và theo dõi chỉ số sinh hiệu, sức khỏe</span>
-                </li>
-                <li class="permission-item">
-                    <span class="permission-icon">✓</span>
-                    <span>Xem và hoàn thành danh sách công việc, lịch chăm sóc</span>
-                </li>
-                <li class="permission-item">
-                    <span class="permission-icon">✓</span>
-                    <span>Gửi thông báo & tương tác với người nhà người cao tuổi</span>
-                </li>
-                <li class="permission-item">
-                    <span class="permission-icon">✓</span>
-                    <span>Xuất báo cáo tổng quan định kỳ</span>
-                </li>
-            </ul>
+                <!-- 2. Tạo và chỉnh sửa hồ sơ -->
+                <div class="permission-row-item">
+                    <span class="permission-title">Tạo và chỉnh sửa hồ sơ</span>
+                    @if (role == "Nhân viên")
+                    {
+                        <span class="permission-status-badge badge-granted">Có quyền</span>
+                    }
+                    else
+                    {
+                        <span class="permission-status-badge badge-denied">Không có quyền</span>
+                    }
+                </div>
+
+                <!-- 3. Nhập chỉ số sức khỏe -->
+                <div class="permission-row-item">
+                    <span class="permission-title">Nhập chỉ số sức khỏe</span>
+                    @if (role == "Nhân viên")
+                    {
+                        <span class="permission-status-badge badge-granted">Có quyền</span>
+                    }
+                    else
+                    {
+                        <span class="permission-status-badge badge-denied">Không có quyền</span>
+                    }
+                </div>
+
+                <!-- 4. Xác nhận cấp thuốc -->
+                <div class="permission-row-item">
+                    <span class="permission-title">Xác nhận cấp thuốc</span>
+                    @if (role == "Nhân viên")
+                    {
+                        <span class="permission-status-badge badge-granted">Có quyền</span>
+                    }
+                    else
+                    {
+                        <span class="permission-status-badge badge-denied">Không có quyền</span>
+                    }
+                </div>
+
+                <!-- 5. Xuất báo cáo PDF -->
+                <div class="permission-row-item">
+                    <span class="permission-title">Xuất báo cáo PDF</span>
+                    @if (role == "Nhân viên")
+                    {
+                        <span class="permission-status-badge badge-granted">Có quyền</span>
+                    }
+                    else
+                    {
+                        <span class="permission-status-badge badge-denied">Không có quyền</span>
+                    }
+                </div>
+
+                <!-- 6. Quản lý tài khoản người dùng -->
+                <div class="permission-row-item">
+                    <span class="permission-title">Quản lý tài khoản người dùng</span>
+                    <span class="permission-status-badge badge-denied">Không có quyền</span>
+                </div>
+
+                <!-- 7. Cấu hình hệ thống -->
+                <div class="permission-row-item">
+                    <span class="permission-title">Cấu hình hệ thống</span>
+                    <span class="permission-status-badge badge-denied">Không có quyền</span>
+                </div>
+            </div>
         </div>
     </main>
 </div>

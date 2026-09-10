@@ -323,6 +323,63 @@ namespace SilverCare.Controllers
             return View();
         }
 
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
+        [HttpGet]
+        public IActionResult UserManagement()
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("IsLoggedIn")))
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var role = HttpContext.Session.GetString("Role") ?? "Nhân viên";
+            if (role != "Admin")
+            {
+                return RedirectToAction("AccessDenied", "Home", new { feature = "Quản lý tài khoản người dùng" });
+            }
+
+            return View();
+        }
+
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
+        [HttpGet]
+        public IActionResult SystemSettings()
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("IsLoggedIn")))
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var role = HttpContext.Session.GetString("Role") ?? "Nhân viên";
+            if (role != "Admin")
+            {
+                return RedirectToAction("AccessDenied", "Home", new { feature = "Cấu hình hệ thống" });
+            }
+
+            return View();
+        }
+
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
+        [HttpGet]
+        public IActionResult AccessDenied(string? feature)
+        {
+            if (string.IsNullOrEmpty(HttpContext.Session.GetString("IsLoggedIn")))
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var fullName = HttpContext.Session.GetString("FullName") ?? "Nguyễn Thị Lan";
+            var role = HttpContext.Session.GetString("Role") ?? "Nhân viên";
+            TempData["FullName"] = fullName;
+            TempData["Role"] = role;
+
+            ViewBag.FeatureName = string.IsNullOrEmpty(feature) ? "Chức năng được yêu cầu" : feature;
+            ViewBag.Role = role;
+            ViewBag.FullName = fullName;
+
+            return View();
+        }
+
         public IActionResult LoginSuccess(string role)
         {
             ViewBag.Role = role;
@@ -338,3 +395,4 @@ namespace SilverCare.Controllers
         }
     }
 }
+

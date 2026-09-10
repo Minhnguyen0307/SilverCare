@@ -625,25 +625,33 @@
             } catch(e) {}
 
             let todayHealthUpdates = {};
-            const rawHealth = localStorage.getItem(HEALTH_STORAGE_KEY) || localStorage.getItem("silvercare_health_today_updates_v2");
-            if (rawHealth) {
-                try {
-                    const parsed = JSON.parse(rawHealth);
-                    delete parsed["row-1"];
-                    delete parsed["row-2"];
-                    delete parsed["row-3"];
-                    if (parsed._date === todayKey) {
-                        todayHealthUpdates = parsed;
-                    }
-                } catch (e) {
-                    todayHealthUpdates = {};
+            try {
+                const rawV4 = localStorage.getItem("silvercare_health_records_v4");
+                if (rawV4) {
+                    const parsedV4 = JSON.parse(rawV4);
+                    Object.keys(parsedV4).forEach(resId => {
+                        const rec = parsedV4[resId]?.[todayKey];
+                        if (rec && typeof rec.sys === "number") {
+                            todayHealthUpdates[resId] = rec;
+                        }
+                    });
+                }
+            } catch (e) {}
+
+            if (Object.keys(todayHealthUpdates).length === 0) {
+                const rawHealth = localStorage.getItem(HEALTH_STORAGE_KEY) || localStorage.getItem("silvercare_health_today_updates_v2");
+                if (rawHealth) {
+                    try {
+                        const parsed = JSON.parse(rawHealth);
+                        delete parsed["row-1"];
+                        delete parsed["row-2"];
+                        delete parsed["row-3"];
+                        if (parsed._date === todayKey) {
+                            todayHealthUpdates = parsed;
+                        }
+                    } catch (e) {}
                 }
             }
-
-            // Fallback seed vitals if not yet in todayHealthUpdates
-            if (!todayHealthUpdates["NCT001"]) todayHealthUpdates["NCT001"] = { sys: 132, dia: 85, hr: 74, temp: 36.8, time: "11:03 hôm nay" };
-            if (!todayHealthUpdates["NCT002"]) todayHealthUpdates["NCT002"] = { sys: 124, dia: 73, hr: 68, temp: 37.2, time: "14:43 hôm nay" };
-            if (!todayHealthUpdates["NCT003"]) todayHealthUpdates["NCT003"] = { sys: 105, dia: 65, hr: 83, temp: 37.6, time: "14:43 hôm nay" };
 
             const alertsList = [];
             let highAlertsCount = 0;
