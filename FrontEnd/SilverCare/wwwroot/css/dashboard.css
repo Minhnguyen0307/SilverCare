@@ -1606,4 +1606,34 @@
     height: 14px;
 }
 
+/* Floating Help Button */
+.floating-help-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #ffffff;
+    border: 1px solid #eaecf0;
+    box-shadow: 0 2px 6px rgba(16, 24, 40, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 600;
+    color: #475467;
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.2s ease;
+}
+
+.floating-help-btn:hover {
+    background-color: #f9fafb;
+    color: #101828;
+    box-shadow: 0 4px 12px rgba(16, 24, 40, 0.14);
+    transform: scale(1.05);
+}
+
+
 
